@@ -1,0 +1,81 @@
+
+    digraph textX {
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+    node[
+        shape=record,
+        style=filled,
+        fillcolor=aliceblue
+    ]
+    nodesep = 0.3
+    edge[dir=black,arrowtail=empty]
+
+
+2104278541240[ label="{Program|}"]
+
+2104278526136[ label="{*Command|}"]
+
+2104278536520[ label="{MoveCommand|piece: OBJECT\l}"]
+
+2104278516696[ label="{Coordinates|col: Column\lrow: INT\l}"]
+
+2104278552568[ label="{HandleCommand|handler: OBJECT\l}"]
+
+
+
+2104278541240 -> 2104278526136[arrowtail=diamond, dir=both, headlabel="commands 0..*"]
+2104278526136 -> 2104278536520 [dir=back]
+2104278526136 -> 2104278552568 [dir=back]
+2104278530856[ label="{*OBJECT|}"]
+
+2104278536520 -> 2104278516696[arrowtail=diamond, dir=both, headlabel="move_from "]
+2104278536520 -> 2104278516696[arrowtail=diamond, dir=both, headlabel="move_to "]
+2104278530856[ label="{*OBJECT|}"]
+
+match_rules [ shape=plaintext, label=< <table>
+	<tr>
+		<td><b>Bishop</b></td><td>lovac|bishop|alfil|läufer|fous</td>
+	</tr>
+	<tr>
+		<td><b>Column</b></td><td>a|b|c|d|e|f|g|h</td>
+	</tr>
+	<tr>
+		<td><b>Comment</b></td><td>\/\/.*$</td>
+	</tr>
+	<tr>
+		<td><b>Exit</b></td><td>izlaz|exit|salida|ausfahrt|sortir</td>
+	</tr>
+	<tr>
+		<td><b>King</b></td><td>kralj|king|rey|könig|roi</td>
+	</tr>
+	<tr>
+		<td><b>Knight</b></td><td>skakac|skakač|konj|knight|caballo|springer|cavaliers</td>
+	</tr>
+	<tr>
+		<td><b>LongCastling</b></td><td>velika rokada|castling long|enroque largo|lange rochade|grand roque</td>
+	</tr>
+	<tr>
+		<td><b>New</b></td><td>nova igra|new game|nuevo juego|neues spiel|nouveau jeu</td>
+	</tr>
+	<tr>
+		<td><b>Pawn</b></td><td>pesak|pešak|pion|pawn|peón|bauer</td>
+	</tr>
+	<tr>
+		<td><b>Queen</b></td><td>kraljica|dama|queen|dama o reina|dame</td>
+	</tr>
+	<tr>
+		<td><b>Restart</b></td><td>ponovo pokreni|restart|reiniciar|neu starten|redémarrage</td>
+	</tr>
+	<tr>
+		<td><b>Rock</b></td><td>top|rook|torre|turm|tours</td>
+	</tr>
+	<tr>
+		<td><b>ShortCastling</b></td><td>mala rokada|castling short|enroque corto|kurze rochade|petit roque</td>
+	</tr>
+	<tr>
+		<td><b>Undo</b></td><td>ponisti|poništi|undo|deshacer|rückgängig machen|annuler</td>
+	</tr>
+</table> >]
+
+
+}
