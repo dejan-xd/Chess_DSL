@@ -12,27 +12,27 @@ MoveCommand:
 ;
 
 Pawn:
-    ('pesak'|'pešak'|'pion')
+    ('pesak'|'pešak'|'pion') | 'pawn'
 ;
 
 Knight:
-    ('skakac'|'skakač'|'konj')
+    ('skakac'|'skakač'|'konj') | 'knight'
 ;
 
 Bishop:
-    'lovac'
+    'lovac' | 'bishop'
 ;
 
 Rock:
-    'top'
+    'top' | 'rook'
 ;
 
 Queen:
-    ('kraljica'|'dama')
+    ('kraljica'|'dama') | 'queen'
 ;
 
 King:
-    'kralj'
+    'kralj' | 'king'
 ;
 
 Coordinates:
@@ -48,27 +48,27 @@ HandleCommand:
 ;
 
 Undo:
-    ('ponisti' | 'poništi')
+    ('ponisti' | 'poništi') | 'undo'
 ;
 
 Restart:
-    'ponovo pokreni'
+    'ponovo pokreni' | 'restart'
 ;
 
 Exit:
-    'izlaz'
+    'izlaz' | 'exit'
 ;
 
 ShortCastling:
-    'mala rokada'
+    'mala rokada' | 'castling short'
 ;
 
 LongCastling:
-    'velika rokada'
+    'velika rokada' | 'castling long'
 ;
 
 New:
-    'nova igra'
+    'nova igra' | 'new game'
 ;
 
 Comment:
