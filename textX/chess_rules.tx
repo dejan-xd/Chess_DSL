@@ -1,0 +1,76 @@
+Program:
+    commands*=Command
+;
+
+Command:
+    MoveCommand | HandleCommand
+;
+
+MoveCommand:
+    (piece=Pawn | piece=Knight | piece=Bishop | piece=Rock | piece=Queen | piece=King)?
+    move_from=Coordinates? move_to=Coordinates?
+;
+
+Pawn:
+    ('pesak'|'pešak'|'pion')
+;
+
+Knight:
+    ('skakac'|'skakač'|'konj')
+;
+
+Bishop:
+    'lovac'
+;
+
+Rock:
+    'top'
+;
+
+Queen:
+    ('kraljica'|'dama')
+;
+
+King:
+    'kralj'
+;
+
+Coordinates:
+    col=Column row=INT
+;
+
+Column:
+    'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h'
+;
+
+HandleCommand:
+    (handler=Undo | handler=Restart | handler=Exit | handler=ShortCastling | handler=LongCastling | handler=New)?
+;
+
+Undo:
+    ('ponisti' | 'poništi')
+;
+
+Restart:
+    'ponovo pokreni'
+;
+
+Exit:
+    'izlaz'
+;
+
+ShortCastling:
+    'mala rokada'
+;
+
+LongCastling:
+    'velika rokada'
+;
+
+New:
+    'nova igra'
+;
+
+Comment:
+  /\/\/.*$/
+;
