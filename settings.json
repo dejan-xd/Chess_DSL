@@ -1,51 +1,82 @@
 {
-    "NAME": "Chess Game",
-    "IMAGE": "images/Icon.png",
-    "BOARD_WIDTH": 512,
-    "BOARD_HEIGHT": 512,
-    "BACKGROUND_COLOR": {
-        "RED": 60,
-        "GREEN": 25,
-        "BLUE": 60
+  "NAME": "Chess Game",
+  "IMAGE": "images/Icon.png",
+  "BOARD_WIDTH": 512,
+  "BOARD_HEIGHT": 512,
+  "BACKGROUND_COLOR": {
+    "RED": 60,
+    "GREEN": 25,
+    "BLUE": 60
+  },
+  "MAIN_MENU": {
+    "NEW_GAME": "New game",
+    "SOUND": "Sound",
+    "EXIT": "Exit"
+  },
+  "DIFFICULTY": "Difficulty",
+  "NEW_GAME_MENU": {
+    "EASY": "Easy",
+    "MEDIUM": "Medium",
+    "HARD": "Hard"
+  },
+  "BLACK_WHITE": "Play as white or black?",
+  "PLAY_AS": {
+    "WHITE": "White",
+    "BLACK": "Black"
+  },
+  "SOUND_MENU": {
+    "OFF": "Off",
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "LOUD": "Loud"
+  },
+  "BACK": "Back",
+  "COLORS": {
+    "INITIAL": "IndianRed",
+    "HOVER": "DarkGray"
+  },
+  "GUI_FONT": {
+    "FONT": "Corbel",
+    "SIZE": 22
+  },
+  "SHADOW_COLOR": "Black",
+  "GUI_DRAW_TEXT": {
+    "GAME_FONT": "Helvetica",
+    "GUI_FONT": "Corbel",
+    "FONT_SIZE": 40,
+    "COLOR": "White",
+    "3D_COLOR": "Black",
+    "BACKGROUND_COLOR": "Peachpuff4"
+  },
+  "SETTINGS": {
+    "PIECE_COLOR": "w",
+    "DIFFICULTY": 0,
+    "SOUND": "Loud",
+    "WHITE_WINS": 0.0,
+    "BLACK_WINS": 0.0
+  },
+  "AUDIO": {
+    "CHECK": "audio/check.wav",
+    "CASTLE": "audio/castle.wav",
+    "CAPTURE": "audio/capture.wav",
+    "MOVE": "audio/move.wav",
+    "SOUND": {
+      "OFF": {
+        "NAME": "Off",
+        "VOLUME": 0.0
       },
-    "MAIN_MENU": {
-        "NEW_GAME": "New game",
-        "SOUND": "Sound",
-        "EXIT": "Exit"
-    },
-    "DIFFICULTY": "Difficulty",
-    "NEW_GAME_MENU": {
-        "EASY": "Easy",
-        "MEDIUM": "Medium",
-        "HARD": "Hard"
-    },
-    "BLACK_WHITE": "Play as white or black?",
-    "PLAY_AS": {
-        "WHITE": "White",
-        "BLACK": "Black"
-    },
-    "SOUND_MENU": {
-        "OFF": "Off",
-        "LOW": "Low",
-        "MEDIUM": "Medium",
-        "LOUD": "Loud"
-    },
-    "BACK": "Back",
-    "COLORS": {
-        "INITIAL": "IndianRed",
-        "HOVER": "DarkGray"
-    },
-    "GUI_FONT": {
-        "FONT": "Corbel",
-        "SIZE": 22
-    },
-    "SHADOW_COLOR": "Black",
-    "GUI_DRAW_TEXT": {
-        "GAME_FONT": "Helvetica",
-        "GUI_FONT": "Corbel",
-        "FONT_SIZE": 40,
-        "COLOR": "White",
-        "3D_COLOR": "Black",
-        "BACKGROUND_COLOR": "Peachpuff4"
+      "LOW": {
+        "NAME": "Low",
+        "VOLUME": 0.1
+      },
+      "MEDIUM": {
+        "NAME": "Medium",
+        "VOLUME": 0.3
+      },
+      "LOUD": {
+        "NAME": "Loud",
+        "VOLUME": 1.0
+      }
     }
+  }
 }
