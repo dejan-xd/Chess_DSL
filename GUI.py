@@ -6,6 +6,7 @@ import sys
 import Json
 import pygame as p
 import pygame_widgets as pw
+from ChessMain import ChessMain
 
 json_data = Json.read_from_json()  # global parameter that contains values from settings.json JSON file.
 
@@ -62,13 +63,15 @@ def white_or_black_menu(screen):
     :param screen:
     :return:
     """
-    name, board_width, board_height, _ = Json.get_json_data(json_data)
+    name, board_width, board_height, settings = Json.get_json_data(json_data)
     button_names = json_data['PLAY_AS']
 
     white = draw_button(screen, board_width, board_height // 2 - 40, button_names['WHITE'])
     black = draw_button(screen, board_width, board_height // 2, button_names['BLACK'])
     back = draw_button(screen, board_width, board_height // 2 + 80, json_data['BACK'])
 
+    white.onRelease = lambda: start_game(settings, "w")
+    black.onRelease = lambda: start_game(settings, "b")
     back.onRelease = lambda: new_game_menu(screen)
 
     buttons = []
@@ -225,3 +228,12 @@ def set_volume(settings, audio):
     for key, value in audio['SOUND'].items():
         if settings == value['NAME']:
             return value['VOLUME']
+
+
+def start_game(settings, play_as):
+    settings['PIECE_COLOR'] = play_as
+    Json.write_to_json(json_data)
+
+    chees_main = ChessMain(settings)
+    chees_main.game()
+    #ChessMain.game(settings)
