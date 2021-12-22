@@ -16,7 +16,7 @@ def main_menu(screen):
     :param screen:
     :return:
     """
-    name, board_width, board_height = Json.get_json_data(json_data)
+    name, board_width, board_height, settings = Json.get_json_data(json_data)
     button_names = json_data['MAIN_MENU']
 
     new_game = draw_button(screen, board_width, board_height // 2 - 50, button_names['NEW_GAME'])
@@ -38,7 +38,7 @@ def new_game_menu(screen):
     :param screen:
     :return:
     """
-    name, board_width, board_height = Json.get_json_data(json_data)
+    name, board_width, board_height, settings = Json.get_json_data(json_data)
     button_names = json_data['NEW_GAME_MENU']
 
     easy = draw_button(screen, board_width, board_height // 2 - 75, button_names['EASY'])
@@ -62,7 +62,7 @@ def white_or_black_menu(screen):
     :param screen:
     :return:
     """
-    name, board_width, board_height = Json.get_json_data(json_data)
+    name, board_width, board_height, _ = Json.get_json_data(json_data)
     button_names = json_data['PLAY_AS']
 
     white = draw_button(screen, board_width, board_height // 2 - 40, button_names['WHITE'])
@@ -82,16 +82,25 @@ def sound_menu(screen):
     :param screen:
     :return:
     """
-    name, board_width, board_height = Json.get_json_data(json_data)
+    name, board_width, board_height, settings = Json.get_json_data(json_data)
     color = json_data['COLORS']
     button_names = json_data['SOUND_MENU']
 
-    off = draw_button(screen, board_width, board_height // 2 - 75, button_names['OFF'], p.Color(color['INITIAL']))
-    low = draw_button(screen, board_width, board_height // 2 - 35, button_names['LOW'], p.Color(color['INITIAL']))
-    medium = draw_button(screen, board_width, board_height // 2 + 5, button_names['MEDIUM'], p.Color(color['INITIAL']))
-    loud = draw_button(screen, board_width, board_height // 2 + 45, button_names['LOUD'], p.Color(color['INITIAL']))
+    off = draw_button(screen, board_width, board_height // 2 - 75, button_names['OFF'], get_color(color, settings, button_names['OFF']))
+    low = draw_button(screen, board_width, board_height // 2 - 35, button_names['LOW'], get_color(color, settings, button_names['LOW']))
+    medium = draw_button(screen, board_width, board_height // 2 + 5, button_names['MEDIUM'], get_color(color, settings, button_names['MEDIUM']))
+    loud = draw_button(screen, board_width, board_height // 2 + 45, button_names['LOUD'], get_color(color, settings, button_names['LOUD']))
     back = draw_button(screen, board_width, board_height // 2 + 120, json_data['BACK'])
 
+    off.onClick = lambda: change_settings(screen, off.string)
+    low.onClick = lambda: change_settings(screen, low.string)
+    medium.onClick = lambda: change_settings(screen, medium.string)
+    loud.onClick = lambda: change_settings(screen, loud.string)
+
+    off.onRelease = lambda: sound_menu(screen)
+    low.onRelease = lambda: sound_menu(screen)
+    medium.onRelease = lambda: sound_menu(screen)
+    loud.onRelease = lambda: sound_menu(screen)
     back.onRelease = lambda: main_menu(screen)
 
     buttons = []
@@ -171,3 +180,48 @@ def draw_text(screen, text, title=False):
         screen.blit(text_object, text_location)
         text_object = font.render(text, False, p.Color(gui_draw_text['COLOR']))
         screen.blit(text_object, text_location.move(5, 2))  # 3D effect
+
+
+def change_settings(screen, text):
+    """
+    Method for changing sound volume settings.
+    :param screen:
+    :param text:
+    :return:
+    """
+    audio = json_data["AUDIO"]
+    json_data['SETTINGS']["SOUND"] = text
+    Json.write_to_json(json_data)
+
+    """dummy sound test"""
+    sound = p.mixer.Sound(audio["CHECK"])
+    #sound = p.mixer.Sound(audio["CAPTURE"])
+    #sound = p.mixer.Sound(audio["MOVE"])
+    #sound = p.mixer.Sound(audio["CASTLE"])
+    
+    sound.set_volume(set_volume(json_data['SETTINGS']["SOUND"], audio))
+    sound.play()
+    sound_menu(screen)
+
+
+def get_color(color, settings, sound_choices):
+    """
+    Method for creating color for sound settings buttons. Active setting will be in different color than the rest of buttons.
+    :param color:
+    :param settings:
+    :param sound_choices:
+    :return:
+    """
+    return p.Color(color['HOVER']) if settings['SOUND'] == sound_choices else p.Color(color['INITIAL'])
+
+
+def set_volume(settings, audio):
+    """
+    Method for changing volume based on settings.
+    :param settings:
+    :param audio:
+    :return:
+    """
+    for key, value in audio['SOUND'].items():
+        if settings == value['NAME']:
+            return value['VOLUME']
