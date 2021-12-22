@@ -1,6 +1,5 @@
 import json
 
-
 def read_from_json():
     """
     Method for reading from settings.json JSON file.

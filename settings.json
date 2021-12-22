@@ -3,6 +3,77 @@
   "IMAGE": "images/Icon.png",
   "BOARD_WIDTH": 512,
   "BOARD_HEIGHT": 512,
+  "MOVE_LOG_PANEL_WIDTH": 300,
+  "MOVE_LOG_PANEL_HEIGHT": 512,
+  "MOVE_INFORMATION_HEIGHT": 100,
+  "CONSOLE_HEIGHT": 25,
+  "MAX_FPS": 60,
+  "DIMENSION": 8,
+  "BOARD_COLORS": {
+    "BLACK": "Tan",
+    "WHITE": "Bisque"
+  },
+  "PIECES": {
+    "WP": "wp",
+    "WR": "wR",
+    "WN": "wN",
+    "WB": "wB",
+    "WQ": "wQ",
+    "WK": "wK",
+    "BP": "bp",
+    "BR": "bR",
+    "BN": "bN",
+    "BB": "bB",
+    "BQ": "bQ",
+    "BK": "bK"
+  },
+  "BOARD_COORDINATES": {
+    "ROWS": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H"
+    ],
+    "COLUMNS": [
+      "8",
+      "7",
+      "6",
+      "5",
+      "4",
+      "3",
+      "2",
+      "1"
+    ],
+    "FONT": "Helvetica",
+    "SIZE": 12,
+    "COLOR": "Black"
+  },
+  "CONSOLE_PANEL": {
+    "BORDER_COLOR": "Darkgray",
+    "PANEL_COLOR": "Black",
+    "INPUT_TEXT_COLOR": "White"
+  },
+  "MOVE_LOG_PANEL": {
+    "PANEL_COLOR": "Black",
+    "BORDER_COLOR": "Gray",
+    "BORDER_SIZE": 1,
+    "FONT_COLOR": "White",
+    "LINE_COLOR": "Gray",
+    "TEXT_POSITIONING": {
+      "WHITE_WIDTH_PADDING": 5,
+      "BLACK_WIDTH_PADDING": 155,
+      "TEXT_HEIGHT_PADDING": 25,
+      "LINE_SPACING": 5
+    }
+  },
+  "MOVE_LOG_FONT": {
+    "FONT": "JetBrains Mono",
+    "SIZE": 20
+  },
   "BACKGROUND_COLOR": {
     "RED": 60,
     "GREEN": 25,
