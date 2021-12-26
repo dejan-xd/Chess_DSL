@@ -2,20 +2,22 @@ import sys
 import Json
 import pygame as p
 from tkinter import Tk
-import InputThread
+from InputThread import InputThread
 import time
+from GameState import GameState
+import Move
 
-class ChessMain():
-    def __init__(self, settings):
-        self.settings = settings
+
+class ChessMain:
+    def __init__(self):
         self.json_data = Json.read_from_json()
         self.user_text = ""
         self.IMAGES = {}
-        self.load_data()
-
-    def load_data(self):
         self.SQ_SIZE = self.json_data['BOARD_HEIGHT'] // self.json_data['DIMENSION']
         self.board_colors = [p.Color(self.json_data['BOARD_COLORS']['WHITE']), p.Color(self.json_data['BOARD_COLORS']['BLACK'])]
+        self.game_state = GameState()
+        self.it = InputThread()  # user inputs
+        self.move_from = self.move_to = None
 
     def load_images(self):
         """
@@ -39,8 +41,8 @@ class ChessMain():
         Method for creating console information rectangle object.
         :return:
         """
-        move_information_rectangle = p.Rect(0, self.json_data['BOARD_HEIGHT'], 
-                                            self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'], 
+        move_information_rectangle = p.Rect(0, self.json_data['BOARD_HEIGHT'],
+                                            self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'],
                                             self.json_data['MOVE_INFORMATION_HEIGHT'])
         return move_information_rectangle
 
@@ -50,7 +52,7 @@ class ChessMain():
         :param screen:
         :return:
         """
-        
+
         for row in range(self.json_data['DIMENSION']):
             for col in range(self.json_data['DIMENSION']):
                 color = self.board_colors[((row + col) % 2)]  # pick color
@@ -88,7 +90,6 @@ class ChessMain():
         """
         Method for drawing panel which will display move information.
         :param screen:
-        :param font:
         :return:
         """
 
@@ -105,10 +106,10 @@ class ChessMain():
         :param font:
         :return:
         """
-        
+
         console_panel = self.json_data['CONSOLE_PANEL']
         console_rectangle = p.Rect(0, self.json_data['BOARD_HEIGHT'] + self.json_data['MOVE_INFORMATION_HEIGHT'],
-                                self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'], self.json_data['CONSOLE_HEIGHT'])
+                                   self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'], self.json_data['CONSOLE_HEIGHT'])
 
         p.draw.rect(screen, p.Color(console_panel['PANEL_COLOR']), console_rectangle)
         p.draw.rect(screen, p.Color(console_panel['BORDER_COLOR']), console_rectangle, 1)
@@ -131,7 +132,8 @@ class ChessMain():
         p.draw.rect(screen, p.Color(move_log_panel['PANEL_COLOR']), move_log_rectangle)
         p.draw.rect(screen, p.Color(move_log_panel['BORDER_COLOR']), move_log_rectangle, move_log_panel['BORDER_SIZE'])
 
-        p.draw.line(screen, p.Color(move_log_panel['LINE_COLOR']), (self.json_data['BOARD_WIDTH'], 17), (self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'], 17))
+        p.draw.line(screen, p.Color(move_log_panel['LINE_COLOR']), (self.json_data['BOARD_WIDTH'], 17),
+                    (self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'], 17))
         p.draw.line(screen, p.Color(move_log_panel['LINE_COLOR']), (self.json_data['BOARD_WIDTH'], self.json_data['BOARD_HEIGHT'] - 15),
                     (self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'], self.json_data['BOARD_HEIGHT'] - 15))
         p.draw.line(screen, p.Color(move_log_panel['LINE_COLOR']), (self.json_data['BOARD_WIDTH'] + (self.json_data['MOVE_LOG_PANEL_WIDTH'] / 2), 0),
@@ -163,48 +165,67 @@ class ChessMain():
 
         self.move_log_panel_lines_and_text(screen, move_log_panel, move_log_rectangle, font, settings)
 
-    def draw_game_state(self, screen, move_log_font):
+    def draw_game_state(self, screen, move_log_font, settings):
         """
         Responsible for all the graphics within a current game state.
         :param screen:
         :param move_log_font:
+        :param settings:
         :return:
         """
-
-        board = [
-                ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-                ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
-                ["--", "--", "--", "--", "--", "--", "--", "--"],
-                ["--", "--", "--", "--", "--", "--", "--", "--"],
-                ["--", "--", "--", "--", "--", "--", "--", "--"],
-                ["--", "--", "--", "--", "--", "--", "--", "--"],
-                ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-                ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
-        
         self.draw_board(screen)  # draw squares on the board
-        self.draw_pieces(screen, board)  # draw pieces on top of squares
+        self.draw_pieces(screen, self.game_state.board)  # draw pieces on top of squares
         self.draw_coordinates(screen)  # draw coordinates on board
         self.draw_move_information(screen)  # draw move information
         self.draw_console(screen, move_log_font)  # draw console for inputs
-        self.draw_move_log(screen, move_log_font, self.settings)  # draw move log for chess notations
+        self.draw_move_log(screen, move_log_font, settings)  # draw move log for chess notations
 
-    def game(self):
+    def move_logic(self, move_made):
+        """
+        Logic for pasting/reading the move from game console and executing player's move.
+        :param move_made:
+        :return:
+        """
+        self.it.enter = True
+        self.it.input_command = "print('" + self.user_text.lower() + "')"
+        time.sleep(0.1)  # wait for another thread to get all information
+
+        if not self.game_state.game_over:
+            move_from = self.it.move_from
+            move_to = self.it.move_to
+
+            if move_from is not None and move_to is not None:
+
+                move = Move.Move(move_from, move_to, self.game_state.board)
+                self.game_state.make_move(move)
+                move_made = True
+
+        return move_made
+
+    def game(self, settings):
         """
         The main driver for the code. This will handle user input and update the graphics.
         :return:
         """
 
-        it = InputThread.InputThread() # user inputs
-        it.start() # start thread
+        self.it.start()  # start thread
+
         clock = p.time.Clock()
         screen = p.display.set_mode((self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'],
-                                    self.json_data['BOARD_HEIGHT'] + self.json_data['MOVE_INFORMATION_HEIGHT'] + self.json_data['CONSOLE_HEIGHT']))
+                                     self.json_data['BOARD_HEIGHT'] + self.json_data['MOVE_INFORMATION_HEIGHT'] + self.json_data['CONSOLE_HEIGHT']))
         move_log_font = p.font.SysFont(self.json_data['MOVE_LOG_FONT']['FONT'], self.json_data['MOVE_LOG_FONT']['SIZE'], False, False)
 
         self.load_images()  # do this only once, before the while loop
 
+        if settings['PIECE_COLOR'] == "w":
+            self.game_state.player_one = True
+        elif settings['PIECE_COLOR'] == "b":
+            self.game_state.player_two = True
+
+        move_made = False  # flags
+
         while True:
-            self.draw_game_state(screen, move_log_font)
+            self.draw_game_state(screen, move_log_font, settings)
             clock.tick(self.json_data['MAX_FPS'])  # refresh screen frame rate
             p.display.flip()  # draw the game
 
@@ -216,13 +237,12 @@ class ChessMain():
                 elif event.type == p.KEYDOWN:
                     if event.key == p.K_BACKSPACE:
                         self.user_text = self.user_text[:-1]
-                    
+
                     elif event.key == p.K_v and p.key.get_mods() & p.KMOD_CTRL:
                         self.user_text = Tk().clipboard_get()
 
                     elif event.key == p.K_RETURN:
-                        it.last_user_input = "print('" + self.user_text.lower() + "')"
-                        time.sleep(0.1)  # wait for another thread to get all information
+                        move_made = self.move_logic(move_made)  # move logic
 
                         if self.user_text == 'exit':
                             sys.exit()
@@ -233,3 +253,7 @@ class ChessMain():
                         if len(self.user_text) != 50:
                             self.user_text += event.unicode
 
+            # logic when move has been made
+            if move_made:
+                move_made = False
+                self.it.input_command = self.it.move_from = self.it.move_to = None
