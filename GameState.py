@@ -32,6 +32,8 @@ class GameState:
         self.player_one = False  # play as white
         self.player_two = False  # play as black
 
+        self.moveLog = []
+
         self.whiteKingLocation = (7, 4)
         self.blackKingLocation = (0, 4)
 
@@ -47,9 +49,27 @@ class GameState:
         """
         self.board[move.startRow][move.startCol] = "--"
         self.board[move.endRow][move.endCol] = move.pieceMoved
+        self.moveLog.append(move) # log the move so we can undo it later
         self.whiteToMove = not self.whiteToMove  # swap players
         # update the king's location if needed
         if move.pieceMoved == 'wK':
             self.whiteKingLocation = (move.endRow, move.endCol)
         elif move.pieceMoved == 'bK':
             self.blackKingLocation = (move.endRow, move.endCol)
+
+    def undo_move(self):
+        """
+        Undo the last move made.
+        :return:
+        """
+        if len(self.moveLog) != 0:  # make sure that there is a move to undo
+            move = self.moveLog.pop()
+            self.board[move.startRow][move.startCol] = move.pieceMoved
+            self.board[move.endRow][move.endCol] = move.pieceCaptured
+            self.whiteToMove = not self.whiteToMove  # switch turns back
+
+            # update the king's location if needed
+            if move.pieceMoved == 'wK':
+                self.whiteKingLocation = (move.startRow, move.startCol)
+            elif move.pieceMoved == 'bK':
+                self.blackKingLocation = (move.startRow, move.startCol)

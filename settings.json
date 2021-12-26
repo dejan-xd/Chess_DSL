@@ -120,7 +120,7 @@
     "BACKGROUND_COLOR": "Peachpuff4"
   },
   "SETTINGS": {
-    "PIECE_COLOR": "b",
+    "PIECE_COLOR": "w",
     "DIFFICULTY": 0,
     "SOUND": "Low",
     "WHITE_WINS": 0.0,
@@ -149,5 +149,13 @@
         "VOLUME": 1.0
       }
     }
+  },
+  "COMMANDS": {
+    "UNDO": "undo",
+    "RESTART": "restart",
+    "NEW_GAME": "new",
+    "EXIT": "exit",
+    "CASTLE_SHORT": "castling short",
+    "CASTLE_LONG": "castling long"
   }
 }

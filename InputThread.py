@@ -45,6 +45,9 @@ class InputThread(threading.Thread):
                 input_command_split = self.input_command.split("'")
                 self.input_command = input_command_split[1]
 
-                split_command = self.input_command.split(' ')
-                self.move_from = tuple(map(int, self.input_notation(split_command[0])))
-                self.move_to = tuple(map(int, self.input_notation(split_command[1])))
+                if self.input_command == 'undo':
+                    pass
+                else:
+                    split_command = self.input_command.split(' ')
+                    self.move_from = tuple(map(int, self.input_notation(split_command[0])))
+                    self.move_to = tuple(map(int, self.input_notation(split_command[1])))
