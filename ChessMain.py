@@ -2,6 +2,8 @@ import sys
 import Json
 import pygame as p
 from tkinter import Tk
+import InputThread
+import time
 
 class ChessMain():
     def __init__(self, settings):
@@ -192,6 +194,8 @@ class ChessMain():
         :return:
         """
 
+        it = InputThread.InputThread() # user inputs
+        it.start() # start thread
         clock = p.time.Clock()
         screen = p.display.set_mode((self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'],
                                     self.json_data['BOARD_HEIGHT'] + self.json_data['MOVE_INFORMATION_HEIGHT'] + self.json_data['CONSOLE_HEIGHT']))
@@ -215,7 +219,17 @@ class ChessMain():
                     
                     elif event.key == p.K_v and p.key.get_mods() & p.KMOD_CTRL:
                         self.user_text = Tk().clipboard_get()
-                    
+
+                    elif event.key == p.K_RETURN:
+                        it.last_user_input = "print('" + self.user_text.lower() + "')"
+                        time.sleep(0.1)  # wait for another thread to get all information
+
+                        if self.user_text == 'exit':
+                            sys.exit()
+
+                        self.user_text = ""
+
                     else:
                         if len(self.user_text) != 50:
                             self.user_text += event.unicode
+
