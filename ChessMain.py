@@ -244,6 +244,11 @@ class ChessMain:
                     elif event.key == p.K_RETURN:
                         move_made = self.move_logic(move_made)  # move logic
 
+                        if self.it.input_command == self.json_data['COMMANDS']['UNDO'] and not self.game_state.game_over:
+                            self.game_state.undo_move()
+                            move_made = True
+                            self.it.input_command = self.it.move_from = self.it.move_to = None
+
                         if self.user_text == 'exit':
                             sys.exit()
 
