@@ -198,9 +198,9 @@ def change_settings(screen, text):
 
     """dummy sound test"""
     sound = p.mixer.Sound(audio["CHECK"])
-    #sound = p.mixer.Sound(audio["CAPTURE"])
-    #sound = p.mixer.Sound(audio["MOVE"])
-    #sound = p.mixer.Sound(audio["CASTLE"])
+    # sound = p.mixer.Sound(audio["CAPTURE"])
+    # sound = p.mixer.Sound(audio["MOVE"])
+    # sound = p.mixer.Sound(audio["CASTLE"])
     
     sound.set_volume(set_volume(json_data['SETTINGS']["SOUND"], audio))
     sound.play()
@@ -234,6 +234,5 @@ def start_game(settings, play_as):
     settings['PIECE_COLOR'] = play_as
     Json.write_to_json(json_data)
 
-    chees_main = ChessMain(settings)
-    chees_main.game()
-    #ChessMain.game(settings)
+    chess_main = ChessMain()
+    chess_main.game(settings)
