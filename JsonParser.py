@@ -1,3 +1,6 @@
+"""
+    Create Library for JSON parser.
+"""
 import json
 
 class JsonParser():
@@ -24,10 +27,13 @@ class JsonParser():
         json.dump(new_json, json_file, indent=2, ensure_ascii=False)
         json_file.close()
     
-    def get_json_data(self, json):
+    def get_json_data(self):
         name = self.data['NAME']
         board_width = self.data['BOARD_WIDTH']
         board_height = self.data['BOARD_HEIGHT']
         settings = self.data['SETTINGS']
 
         return name, board_width, board_height, settings
+    
+    def __del__(self):
+        self.data = None
