@@ -131,27 +131,75 @@ class ChessMain:
         :param settings:
         :return:
         """
-        p.draw.rect(screen, p.Color(move_log_panel['PANEL_COLOR']), move_log_rectangle)
-        p.draw.rect(screen, p.Color(move_log_panel['BORDER_COLOR']), move_log_rectangle, move_log_panel['BORDER_SIZE'])
+        BORDER_COLOR = move_log_panel['BORDER_COLOR']
+        BOARD_HEIGHT = self.json_parser.get_by_key('BOARD_HEIGHT')
+        BORDER_SIZE = move_log_panel['BORDER_SIZE']
+        BOARD_WIDTH = self.json_parser.get_by_key('BOARD_WIDTH')
+        PANEL_COLOR = move_log_panel['PANEL_COLOR']
+        LINE_COLOR = move_log_panel['LINE_COLOR']
+        MOVE_LOG_PANEL_WIDTH = self.json_parser.get_by_key('MOVE_LOG_PANEL_WIDTH')
+        FONT_COLOR = move_log_panel['FONT_COLOR']
+        WHITE_WINS = settings['WHITE_WINS']
+        BLACK_WINS = settings['BLACK_WINS']
 
-        p.draw.line(screen, p.Color(move_log_panel['LINE_COLOR']), (self.json_data['BOARD_WIDTH'], 17),
-                    (self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'], 17))
-        p.draw.line(screen, p.Color(move_log_panel['LINE_COLOR']), (self.json_data['BOARD_WIDTH'], self.json_data['BOARD_HEIGHT'] - 15),
-                    (self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'], self.json_data['BOARD_HEIGHT'] - 15))
-        p.draw.line(screen, p.Color(move_log_panel['LINE_COLOR']), (self.json_data['BOARD_WIDTH'] + (self.json_data['MOVE_LOG_PANEL_WIDTH'] / 2), 0),
-                    (self.json_data['BOARD_WIDTH'] + (self.json_data['MOVE_LOG_PANEL_WIDTH'] / 2), self.json_data['BOARD_HEIGHT']))
+        p.draw.rect(screen, p.Color(PANEL_COLOR), move_log_rectangle)
+        p.draw.rect(screen, p.Color(BORDER_COLOR), move_log_rectangle, BORDER_SIZE)
+
+        p.draw.line(screen, p.Color(LINE_COLOR), (BOARD_WIDTH, 17), (BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, 17))
+        p.draw.line(screen, p.Color(LINE_COLOR), (BOARD_WIDTH, BOARD_HEIGHT - 15), (BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT - 15))
+        p.draw.line(screen, p.Color(LINE_COLOR), (BOARD_WIDTH + (MOVE_LOG_PANEL_WIDTH / 2), 0), (BOARD_WIDTH + (MOVE_LOG_PANEL_WIDTH / 2), BOARD_HEIGHT))
 
         text = "White\tBlack"
         text = text.replace('\t', ' ' * 30)
-        text_object = font.render(text, True, p.Color(move_log_panel['FONT_COLOR']))
-        text_location = move_log_rectangle.move((self.json_data['MOVE_LOG_PANEL_WIDTH'] - text_object.get_width()) / 2, 3)
+        text_object = font.render(text, True, p.Color(FONT_COLOR))
+        text_location = move_log_rectangle.move((MOVE_LOG_PANEL_WIDTH - text_object.get_width()) / 2, 3)
         screen.blit(text_object, text_location)
 
-        text = "White: " + str(settings['WHITE_WINS']) + "\tBlack: " + str(settings['BLACK_WINS'])
+        text = "White: " + str(WHITE_WINS) + "\tBlack: " + str(BLACK_WINS)
         text = text.replace('\t', ' ' * 20)
-        text_object = font.render(text, True, p.Color(move_log_panel['FONT_COLOR']))
-        text_location = move_log_rectangle.move((self.json_data['MOVE_LOG_PANEL_WIDTH'] - text_object.get_width()) / 2, self.json_data['BOARD_HEIGHT'] - text_object.get_height())
+        text_object = font.render(text, True, p.Color(FONT_COLOR))
+        text_location = move_log_rectangle.move((MOVE_LOG_PANEL_WIDTH - text_object.get_width()) / 2, BOARD_HEIGHT - text_object.get_height())
         screen.blit(text_object, text_location)
+
+    def create_chess_notation(self):
+        """
+        Method for editing notations for moves from move log. If the notation is None edit it. If the move is checkmate or check, edit it's notation.
+        :return:
+        """
+        for i in range(0, len(self.game_state.moveLog)):
+            if self.game_state.moveLog[i].notation is None:
+                self.game_state.moveLog[i].notation = str(self.game_state.moveLog[i])
+    
+    def draw_text_move_log_panel(self, screen, move_log_panel, move_log_rectangle, font, notation_text):
+        """
+        Method for drawing notation list on move log panel. Also contains logic for creating scroll up/down feature.
+        :param screen:
+        :param move_log_panel:
+        :param move_log_rectangle:
+        :param font:
+        :param notation_text:
+        :return:
+        """
+        FONT_COLOR = move_log_panel['FONT_COLOR']
+        TEXT_POSITIONING = move_log_panel['TEXT_POSITIONING']
+        TEXT_Y = TEXT_POSITIONING['TEXT_HEIGHT_PADDING']
+        WHITE_WIDTH_PADDING = TEXT_POSITIONING['WHITE_WIDTH_PADDING']
+        BLACK_WIDTH_PADDING = TEXT_POSITIONING['BLACK_WIDTH_PADDING']
+        LINE_SPACING = TEXT_POSITIONING['LINE_SPACING']
+
+        for i in range(len(notation_text)):
+            parts = notation_text[i].split("\t")  # split by tab
+            text_position = TEXT_Y
+
+            text_object = font.render(parts[0], True, p.Color(FONT_COLOR))  # white column
+            text_location = move_log_rectangle.move(WHITE_WIDTH_PADDING, text_position)
+            screen.blit(text_object, text_location)
+
+            text_object = font.render(parts[1], True, p.Color(FONT_COLOR))  # black column
+            text_location = move_log_rectangle.move(BLACK_WIDTH_PADDING, text_position)
+            screen.blit(text_object, text_location)
+
+            TEXT_Y += text_object.get_height() + LINE_SPACING  # draw text one under another
 
     def draw_move_log(self, screen, font, settings):
         """
@@ -162,10 +210,20 @@ class ChessMain:
         :return:
         """
 
-        move_log_panel = self.json_data['MOVE_LOG_PANEL']
+        move_log_panel = self.json_parser.get_by_key('MOVE_LOG_PANEL')
         move_log_rectangle = self.create_move_log_rectangle()
 
         self.move_log_panel_lines_and_text(screen, move_log_panel, move_log_rectangle, font, settings)
+        self.create_chess_notation()
+
+        notation_text = []
+        for row in range(0, len(self.game_state.moveLog), 2):
+            move_string = str(row // 2 + 1) + ". " + self.game_state.moveLog[row].notation + "\t"  # make move_string
+            if row + 1 < len(self.game_state.moveLog):  # black made a move
+                move_string += self.game_state.moveLog[row + 1].notation  # add black move to the move_string, example (1. d4 d5)
+            notation_text.append(move_string)
+
+        self.draw_text_move_log_panel(screen, move_log_panel, move_log_rectangle, font, notation_text)
 
     def draw_game_state(self, screen, move_log_font, settings):
         """
