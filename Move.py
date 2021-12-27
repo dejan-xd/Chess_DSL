@@ -14,7 +14,8 @@ class Move:
         self.pieceMoved = board[self.startRow][self.startCol]
         self.pieceCaptured = board[self.endRow][self.endCol]
         self.moveID = self.startRow * 1000 + self.startCol * 100 + self.endRow * 10 + self.endCol
-
+        self.notation = None
+        
     def get_chess_notation(self):
         """
         Combine get rank file to make real chess notation from start row/col and end row/col. For example: (e2 e4)
@@ -30,3 +31,19 @@ class Move:
         :return:
         """
         return self.colsToFiles[col] + self.rowsToRanks[row]
+    
+    def __str__(self):
+        """
+        Overriding the str() function.
+        :return:
+        """
+
+        end_square = self.get_rank_file(self.endRow, self.endCol)
+
+        # pawn moves
+        if self.pieceMoved[1] == 'p':
+            return end_square
+
+        # piece moves
+        move_string = self.pieceMoved[1]
+        return move_string + end_square
