@@ -6,10 +6,12 @@ from InputThread import InputThread
 import time
 from GameState import GameState
 import Move
-
+from JsonParser import JsonParser
 
 class ChessMain:
     def __init__(self):
+        self.json_parser = JsonParser()
+        # Izbaciti kad vise se ne bude koristilo
         self.json_data = Json.read_from_json()
         self.user_text = ""
         self.IMAGES = {}
@@ -180,7 +182,7 @@ class ChessMain:
         self.draw_console(screen, move_log_font)  # draw console for inputs
         self.draw_move_log(screen, move_log_font, settings)  # draw move log for chess notations
 
-    def move_logic(self, move_made):
+    def move_logic(self, move_made, animate):
         """
         Logic for pasting/reading the move from game console and executing player's move.
         :param move_made:
@@ -198,9 +200,46 @@ class ChessMain:
 
                 move = Move.Move(move_from, move_to, self.game_state.board)
                 self.game_state.make_move(move)
-                move_made = True
+                move_made = animate = True
 
-        return move_made
+        return move_made, animate
+
+    def animate_move(self, move, screen, board, clock):
+        """
+        Method for animating a move on the chess board.
+        :param move:
+        :param screen:
+        :param board:
+        :param clock:
+        :return:
+        """
+        delta_row = move.endRow - move.startRow
+        delta_col = move.endCol - move.startCol
+        frames_per_square = self.json_parser.get_by_key('FRAMES_PER_SQUARE')  # frames to move one square
+        frame_count = (abs(delta_row) + abs(delta_col)) * frames_per_square
+
+        for frame in range(frame_count + 1):
+            row, col = (move.startRow + delta_row * frame / frame_count, move.startCol + delta_col * frame / frame_count)
+
+            # redraw
+            self.draw_board(screen)
+            self.draw_pieces(screen, board)
+            self.draw_coordinates(screen)
+
+            # erase the piece moved from it's ending square
+            color = self.board_colors[(move.endRow + move.endCol) % 2]
+            end_square = p.Rect(move.endCol * self.SQ_SIZE, move.endRow * self.SQ_SIZE, self.SQ_SIZE, self.SQ_SIZE)
+            p.draw.rect(screen, color, end_square)
+
+            # draw captured piece onto rectangle
+            if move.pieceCaptured != "--":
+                screen.blit(self.IMAGES[move.pieceCaptured], end_square)
+
+            # draw moving piece
+            screen.blit(self.IMAGES[move.pieceMoved], p.Rect(col * self.SQ_SIZE, row * self.SQ_SIZE, self.SQ_SIZE, self.SQ_SIZE))
+
+            p.display.flip()
+            clock.tick(self.json_parser.get_by_key('MAX_FPS'))
 
     def game(self, settings):
         """
@@ -211,9 +250,9 @@ class ChessMain:
         self.it.start()  # start thread
 
         clock = p.time.Clock()
-        screen = p.display.set_mode((self.json_data['BOARD_WIDTH'] + self.json_data['MOVE_LOG_PANEL_WIDTH'],
-                                     self.json_data['BOARD_HEIGHT'] + self.json_data['MOVE_INFORMATION_HEIGHT'] + self.json_data['CONSOLE_HEIGHT']))
-        move_log_font = p.font.SysFont(self.json_data['MOVE_LOG_FONT']['FONT'], self.json_data['MOVE_LOG_FONT']['SIZE'], False, False)
+        screen = p.display.set_mode((self.json_parser.get_by_key('BOARD_WIDTH') + self.json_parser.get_by_key('MOVE_LOG_PANEL_WIDTH'),
+                                     self.json_parser.get_by_key('BOARD_HEIGHT') + self.json_parser.get_by_key('MOVE_INFORMATION_HEIGHT') + self.json_parser.get_by_key('CONSOLE_HEIGHT')))
+        move_log_font = p.font.SysFont(self.json_parser.get_by_key('MOVE_LOG_FONT', 'FONT'), self.json_parser.get_by_key('MOVE_LOG_FONT', 'SIZE'), False, False)
 
         self.load_images()  # do this only once, before the while loop
 
@@ -222,7 +261,7 @@ class ChessMain:
         elif settings['PIECE_COLOR'] == "b":
             self.game_state.player_two = True
 
-        move_made = False  # flags
+        move_made = animate = False  # flags
 
         while True:
             self.draw_game_state(screen, move_log_font, settings)
@@ -242,11 +281,11 @@ class ChessMain:
                         self.user_text = Tk().clipboard_get()
 
                     elif event.key == p.K_RETURN:
-                        move_made = self.move_logic(move_made)  # move logic
+                        move_made = animate = self.move_logic(move_made, animate)  # move logic
 
-                        if self.it.input_command == self.json_data['COMMANDS']['UNDO'] and not self.game_state.game_over:
+                        if self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'UNDO') and not self.game_state.game_over:
                             self.game_state.undo_move()
-                            move_made = True
+                            move_made = animate = True
                             self.it.input_command = self.it.move_from = self.it.move_to = None
 
                         if self.user_text == 'exit':
@@ -260,5 +299,8 @@ class ChessMain:
 
             # logic when move has been made
             if move_made:
-                move_made = False
+                # For piece move animation
+                if animate:
+                    self.animate_move(self.game_state.moveLog[-1], screen, self.game_state.board, clock)
+                move_made = animate = False
                 self.it.input_command = self.it.move_from = self.it.move_to = None

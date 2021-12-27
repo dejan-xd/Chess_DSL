@@ -9,6 +9,7 @@
   "CONSOLE_HEIGHT": 25,
   "MAX_FPS": 60,
   "DIMENSION": 8,
+  "FRAMES_PER_SQUARE": 10,
   "BOARD_COLORS": {
     "BLACK": "Tan",
     "WHITE": "Bisque"

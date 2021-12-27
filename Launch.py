@@ -12,13 +12,16 @@ Domain-Specific Languages DSL, FTN 2021
 import GUI
 import Json
 import pygame as p
-
+from JsonParser import JsonParser
 
 def init():
     """
     Method for running the project.
     :return:
     """
+    json_parser = JsonParser()
+    json_parser.read_json()
+
     json_data = Json.read_from_json()
     p.init()  # initializing the constructor
     p.display.set_caption(json_data['NAME'])
