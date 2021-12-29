@@ -14,6 +14,7 @@ import Json
 import pygame as p
 from JsonParser import JsonParser
 
+
 def init():
     """
     Method for running the project.
