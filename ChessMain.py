@@ -242,6 +242,33 @@ class ChessMain:
         self.draw_console(screen, move_log_font)  # draw console for inputs
         self.draw_move_log(screen, move_log_font, settings)  # draw move log for chess notations
 
+    def get_move(self):
+        """
+        Checking if the move was castling move first. If not return move_from and move_to so the move can be made.
+        :return:
+        """
+        if self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'CASTLE_SHORT'):
+            if self.game_state.whiteToMove:
+                move_from = self.game_state.whiteKingLocation  # (7, 4)
+                move_to = self.game_state.whiteKingCastleLocationKingSide  # (7, 6)
+            else:
+                move_from = self.game_state.blackKingLocation  # (0, 4)
+                move_to = self.game_state.blackKingCastleLocationKingSide  # (0, 6)
+
+        elif self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'CASTLE_LONG'):
+            if self.game_state.whiteToMove:
+                move_from = self.game_state.whiteKingLocation  # (7, 4)
+                move_to = self.game_state.whiteKingCastleLocationQueenSide  # (7, 2)
+            else:
+                move_from = self.game_state.blackKingLocation  # (0, 4)
+                move_to = self.game_state.blackKingCastleLocationQueenSide  # (0, 2)
+
+        else:
+            move_from = self.it.move_from  # if it's any other move
+            move_to = self.it.move_to
+
+        return move_from, move_to
+
     def move_logic(self, move_made, animate):
         """
         Logic for pasting/reading the move from game console and executing player's move.
@@ -254,8 +281,7 @@ class ChessMain:
         time.sleep(0.1)  # wait for another thread to get all information
 
         if not self.game_state.game_over:
-            move_from = self.it.move_from
-            move_to = self.it.move_to
+            move_from, move_to = self.get_move()
 
             if move_from is not None and move_to is not None:
                 move = Move.Move(move_from, move_to, self.game_state.board)
@@ -328,7 +354,7 @@ class ChessMain:
 
         while True:
             self.draw_game_state(screen, move_log_font, settings)
-            clock.tick(self.json_data['MAX_FPS'])  # refresh screen frame rate
+            clock.tick(self.json_parser.get_by_key('MAX_FPS'))  # refresh screen frame rate
             p.display.flip()  # draw the game
 
             for event in p.event.get():
@@ -348,7 +374,8 @@ class ChessMain:
 
                         if self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'UNDO') and not self.game_state.game_over:
                             self.game_state.undo_move()
-                            move_made = animate = True
+                            move_made = True
+                            animate = False
                             self.it.input_command = self.it.move_from = self.it.move_to = None
 
                         if self.user_text == 'exit':
@@ -369,4 +396,3 @@ class ChessMain:
                 self.it.input_command = self.it.move_from = self.it.move_to = None
 
                 self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves
-

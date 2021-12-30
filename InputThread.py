@@ -47,6 +47,10 @@ class InputThread(threading.Thread):
 
                 if self.input_command == 'undo':
                     pass
+                elif self.input_command == 'castling short':
+                    pass
+                elif self.input_command == 'castling long':
+                    pass
                 else:
                     split_command = self.input_command.split(' ')
                     self.move_from = tuple(map(int, self.input_notation(split_command[0])))
