@@ -292,13 +292,14 @@ class ChessMain:
 
         return move_made, animate
 
-    def animate_move(self, move, screen, board, clock):
+    def animate_move(self, move, screen, board, clock, settings):
         """
         Method for animating a move on the chess board.
         :param move:
         :param screen:
         :param board:
         :param clock:
+        :param settings:
         :return:
         """
         delta_row = move.endRow - move.startRow
@@ -328,6 +329,10 @@ class ChessMain:
 
             p.display.flip()
             clock.tick(self.json_parser.get_by_key('MAX_FPS'))
+        
+        # call audio function after animation
+        self.game_audio(move, settings)
+
 
     def game(self, settings):
         """
@@ -391,8 +396,40 @@ class ChessMain:
             if move_made:
                 # For piece move animation
                 if animate:
-                    self.animate_move(self.game_state.moveLog[-1], screen, self.game_state.board, clock)
+                    self.animate_move(self.game_state.moveLog[-1], screen, self.game_state.board, clock, settings)
                 move_made = animate = False
                 self.it.input_command = self.it.move_from = self.it.move_to = None
 
                 self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves
+
+
+    def set_volume(self, settings, audio):
+        """
+        Method for changing volume based on settings.
+        :param settings:
+        :param audio:
+        :return:
+        """
+        for key, value in audio['SOUND'].items():
+            if settings == value['NAME']:
+                return value['VOLUME']
+
+
+    def game_audio(self, move, settings):
+        """
+        Audio function for playing move, capture and check sounds.
+        :param move:
+        :param settings:
+        :return:
+        """
+        if self.game_state.in_check():
+            sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CHECK'))  # check
+        elif move.isCastleMove:
+           sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CASTLE'))  # castle
+        elif move.pieceCaptured != "--":
+            sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CAPTURE'))  # capture
+        else:
+            sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'MOVE'))  # move
+
+        sound.set_volume(self.set_volume(settings['SOUND'], self.json_parser.get_by_key('AUDIO')))  # read default settings from list
+        sound.play()

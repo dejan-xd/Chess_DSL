@@ -192,18 +192,9 @@ def change_settings(screen, text):
     :param text:
     :return:
     """
-    audio = json_data["AUDIO"]
     json_data['SETTINGS']["SOUND"] = text
     Json.write_to_json(json_data)
 
-    """dummy sound test"""
-    sound = p.mixer.Sound(audio["CHECK"])
-    # sound = p.mixer.Sound(audio["CAPTURE"])
-    # sound = p.mixer.Sound(audio["MOVE"])
-    # sound = p.mixer.Sound(audio["CASTLE"])
-    
-    sound.set_volume(set_volume(json_data['SETTINGS']["SOUND"], audio))
-    sound.play()
     sound_menu(screen)
 
 
@@ -216,18 +207,6 @@ def get_color(color, settings, sound_choices):
     :return:
     """
     return p.Color(color['HOVER']) if settings['SOUND'] == sound_choices else p.Color(color['INITIAL'])
-
-
-def set_volume(settings, audio):
-    """
-    Method for changing volume based on settings.
-    :param settings:
-    :param audio:
-    :return:
-    """
-    for key, value in audio['SOUND'].items():
-        if settings == value['NAME']:
-            return value['VOLUME']
 
 
 def start_game(settings, play_as):
