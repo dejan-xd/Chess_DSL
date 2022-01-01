@@ -158,5 +158,16 @@
     "EXIT": "exit",
     "CASTLE_SHORT": "castling short",
     "CASTLE_LONG": "castling long"
+  },
+  "HIGHLIGHT_COLORS": {
+    "LAST_MOVE_BRIGHT": "Darkolivegreen2",
+    "LAST_MOVE_DARK": "Darkolivegreen3",
+    "CASTLE": "Slateblue1",
+    "IN_CHECK": "Indianred1",
+    "SELECTED_SQUARE": "Skyblue2",
+    "MOVE_TO_BRIGHT": "lightgoldenrod1",
+    "MOVE_TO_DARK": "Lightgoldenrod3",
+    "CAPTURE_BRIGHT": "indianred1",
+    "CAPTURE_DARK": "indianred3"
   }
 }
