@@ -227,102 +227,6 @@ class ChessMain:
 
         self.draw_text_move_log_panel(screen, move_log_panel, move_log_rectangle, font, notation_text)
 
-    def highlight_squares(self, screen, move_from, move_to):
-        """
-        Method for highlighting squares on the board.
-        :param screen:
-        :param move_from:
-        :param move_to:
-        :return:
-        """
-        s = p.Surface((self.SQ_SIZE, self.SQ_SIZE))
-        colors_palette = self.json_parser.get_by_key('HIGHLIGHT_COLORS')
-
-        # last move coloring
-        if len(self.game_state.moveLog) != 0:
-            self.highlight_squares_move_colors(screen, s, colors_palette)
-
-        # is check coloring
-        if self.game_state.in_check():
-            s.fill(p.Color(colors_palette['IN_CHECK']))
-            if self.game_state.whiteToMove:
-                screen.blit(s, (self.game_state.whiteKingLocation[1] * self.SQ_SIZE, self.game_state.whiteKingLocation[0] * self.SQ_SIZE))
-            else:
-                screen.blit(s, (self.game_state.blackKingLocation[1] * self.SQ_SIZE, self.game_state.blackKingLocation[0] * self.SQ_SIZE))
-
-        # rest colorings
-        if move_from == move_to and (move_from is not None or move_to is not None):
-            self.highlight_squares_moves(screen, s, colors_palette, move_from)
-
-    def highlight_squares_moves(self, screen, s, colors_palette, move_from):
-        """
-        For the rest of square moves highlighting.
-        :param screen:
-        :param s:
-        :param colors_palette:
-        :param move_from:
-        :return:
-        """
-        row, col = move_from
-
-        if self.game_state.board[row][col][0] == ('w' if self.game_state.whiteToMove else 'b'):
-
-            # selected square coloring
-            if self.game_state.in_check() and move_from == self.game_state.whiteKingLocation:
-                pass
-            else:
-                s.fill(p.Color(colors_palette['SELECTED_SQUARE']))
-                screen.blit(s, (col * self.SQ_SIZE, row * self.SQ_SIZE))
-
-            for move in self.valid_moves:
-                if move.startRow == row and move.startCol == col:
-
-                    # possible moves from selected square
-                    if (move.endRow + move.endCol) % 2 == 0:
-                        s.fill(p.Color(colors_palette['MOVE_TO_BRIGHT']))
-                    else:
-                        s.fill(p.Color(colors_palette['MOVE_TO_DARK']))
-                    screen.blit(s, (move.endCol * self.SQ_SIZE, move.endRow * self.SQ_SIZE))
-
-                    # possible captures coloring
-                    if self.game_state.board[move.endRow][move.endCol][0] == ('b' if self.game_state.whiteToMove else 'w') or move.isEnPassantMove:
-                        if (move.endRow + move.endCol) % 2 == 0:
-                            s.fill(p.Color(colors_palette['CAPTURE_BRIGHT']))
-                        else:
-                            s.fill(p.Color(colors_palette['CAPTURE_DARK']))
-                        screen.blit(s, (move.endCol * self.SQ_SIZE, move.endRow * self.SQ_SIZE))
-
-    def highlight_squares_move_colors(self, screen, surface, colors_palette):
-        """
-        Color last move squares to green.
-        :param screen:
-        :param surface:
-        :param colors_palette:
-        :return:
-        """
-        start_row = self.game_state.moveLog[-1].startRow
-        start_col = self.game_state.moveLog[-1].startCol
-        end_row = self.game_state.moveLog[-1].endRow
-        end_col = self.game_state.moveLog[-1].endCol
-
-        if (start_row + start_col) % 2 == 0:
-            surface.fill(p.Color(colors_palette['LAST_MOVE_BRIGHT']))
-        else:
-            surface.fill(p.Color(colors_palette['LAST_MOVE_DARK']))
-
-        if self.game_state.moveLog[-1].isCastleMove:
-            surface.fill(p.Color(colors_palette['CASTLE']))
-        screen.blit(surface, (start_col * self.SQ_SIZE, start_row * self.SQ_SIZE))
-
-        if (end_row + end_col) % 2 == 0:
-            surface.fill(p.Color(colors_palette['LAST_MOVE_BRIGHT']))
-        else:
-            surface.fill(p.Color(colors_palette['LAST_MOVE_DARK']))
-
-        if self.game_state.moveLog[-1].isCastleMove:
-            surface.fill(p.Color(colors_palette['CASTLE']))
-        screen.blit(surface, (end_col * self.SQ_SIZE, end_row * self.SQ_SIZE))
-
     def draw_game_state(self, screen, move_log_font, settings):
         """
         Responsible for all the graphics within a current game state.
@@ -332,7 +236,6 @@ class ChessMain:
         :return:
         """
         self.draw_board(screen)  # draw squares on the board
-        self.highlight_squares(screen, self.move_from, self.move_to) # highlight squares
         self.draw_pieces(screen, self.game_state.board)  # draw pieces on top of squares
         self.draw_coordinates(screen)  # draw coordinates on board
         self.draw_move_information(screen)  # draw move information
@@ -389,6 +292,65 @@ class ChessMain:
 
         return move_made, animate
 
+    def animate_castle_move_logic(self, frame, frame_count, rock_piece, rock_start_end_row, rock_start_col, rock_move_col, rock_end_col, is_short):
+        """
+        Logic behind animating castle move. Creates smooth piece sliding for top piece.
+        :param frame:
+        :param frame_count:
+        :param rock_piece:
+        :param rock_start_end_row:
+        :param rock_start_col:
+        :param rock_move_col:
+        :param rock_end_col:
+        :param is_short:
+        :return:
+        """
+        if is_short:
+            rock_row, rock_col = (rock_start_end_row - 0 * frame / frame_count, rock_start_col - rock_move_col * frame / frame_count)
+        else:
+            rock_row, rock_col = (rock_start_end_row - 0 * frame / frame_count, rock_start_col + rock_move_col * frame / frame_count)
+
+        rock_end_square = p.Rect(rock_end_col * self.SQ_SIZE, rock_start_end_row * self.SQ_SIZE, self.SQ_SIZE, self.SQ_SIZE)
+        castle_color = self.board_colors[(rock_start_end_row + rock_end_col) % 2]
+
+        return rock_piece, rock_row, rock_col, castle_color, rock_end_square
+    
+    def animate_castle_move(self, move, delta_col, frame, frame_count):
+        """
+        Method for animating castle move.
+        :param move:
+        :param delta_col:
+        :param frame:
+        :param frame_count:
+        :return:
+        """
+        # white castling
+        if move.startRow == 7:
+            rock_piece = self.json_parser.get_by_key('PIECES', 'WR')
+
+            # king side castle
+            if delta_col == 2:
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 7, 7, 2, 5, is_short=True)
+                return rock_piece, rock_row, rock_col, castle_color, rock_end_square
+
+            # queen side castle
+            elif delta_col == -2:
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 7, 0, 3, 3, is_short=False)
+                return rock_piece, rock_row, rock_col, castle_color, rock_end_square
+
+        # black castling
+        elif move.startRow == 0:
+            rock_piece = self.json_parser.get_by_key('PIECES', 'BR')
+
+            # black king side castle
+            if delta_col == 2:
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 0, 7, 2, 5, is_short=True)
+                return rock_piece, rock_row, rock_col, castle_color, rock_end_square
+
+            elif delta_col == -2:  # black queen side castle
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 0, 0, 3, 3, is_short=False)
+                return rock_piece, rock_row, rock_col, castle_color, rock_end_square
+
     def animate_move(self, move, screen, board, clock, settings):
         """
         Method for animating a move on the chess board.
@@ -406,11 +368,20 @@ class ChessMain:
 
         for frame in range(frame_count + 1):
             row, col = (move.startRow + delta_row * frame / frame_count, move.startCol + delta_col * frame / frame_count)
+            rock_row = rock_col = castle_color = rock_end_square = rock_piece = None  # for assignments before reference
+
+            # animation castle move
+            if move.isCastleMove:
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move(move, delta_col, frame, frame_count)
 
             # redraw
             self.draw_board(screen)
             self.draw_pieces(screen, board)
             self.draw_coordinates(screen)
+
+            # erase rock piece after redraw
+            if move.isCastleMove:
+                p.draw.rect(screen, castle_color, rock_end_square)
 
             # erase the piece moved from it's ending square
             color = self.board_colors[(move.endRow + move.endCol) % 2]
@@ -419,10 +390,18 @@ class ChessMain:
 
             # draw captured piece onto rectangle
             if move.pieceCaptured != "--":
+                if move.isEnPassantMove:  # if is en passant move make en passant row where it happened
+                    en_passant_row = move.endRow + 1 if move.pieceCaptured[0] == 'b' else move.endRow - 1
+                    end_square = p.Rect(move.endCol * self.SQ_SIZE, en_passant_row * self.SQ_SIZE, self.SQ_SIZE, self.SQ_SIZE)
+
                 screen.blit(self.IMAGES[move.pieceCaptured], end_square)
 
             # draw moving piece
             screen.blit(self.IMAGES[move.pieceMoved], p.Rect(col * self.SQ_SIZE, row * self.SQ_SIZE, self.SQ_SIZE, self.SQ_SIZE))
+            
+            # draw rock piece after castling
+            if move.isCastleMove:
+                screen.blit(self.IMAGES[rock_piece], p.Rect(rock_col * self.SQ_SIZE, rock_row * self.SQ_SIZE, self.SQ_SIZE, self.SQ_SIZE))
 
             p.display.flip()
             clock.tick(self.json_parser.get_by_key('MAX_FPS'))
