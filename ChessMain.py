@@ -4,9 +4,11 @@ import pygame as p
 from tkinter import Tk
 from InputThread import InputThread
 import time
-from GameState import GameState
+import GameState
 import Move
 from JsonParser import JsonParser
+
+game_state = GameState.GameState()
 
 
 class ChessMain:
@@ -18,10 +20,9 @@ class ChessMain:
         self.IMAGES = {}
         self.SQ_SIZE = self.json_data['BOARD_HEIGHT'] // self.json_data['DIMENSION']
         self.board_colors = [p.Color(self.json_data['BOARD_COLORS']['WHITE']), p.Color(self.json_data['BOARD_COLORS']['BLACK'])]
-        self.game_state = GameState()
+        self.game_state = game_state
         self.valid_moves = self.game_state.get_valid_moves()
         self.it = InputThread()  # user inputs
-        self.move_from = self.move_to = None
 
     def load_images(self):
         """
@@ -172,7 +173,8 @@ class ChessMain:
             if self.game_state.moveLog[i].notation is None:
                 self.game_state.moveLog[i].notation = str(self.game_state.moveLog[i])
 
-    def draw_text_move_log_panel(self, screen, move_log_panel, move_log_rectangle, font, notation_text):
+    @staticmethod
+    def draw_text_move_log_panel(screen, move_log_panel, move_log_rectangle, font, notation_text):
         """
         Method for drawing notation list on move log panel. Also contains logic for creating scroll up/down feature.
         :param screen:
@@ -236,6 +238,7 @@ class ChessMain:
         :return:
         """
         self.draw_board(screen)  # draw squares on the board
+        self.highlight_squares(screen, self.it.move_from, self.it.move_to)  # highlight squares
         self.draw_pieces(screen, self.game_state.board)  # draw pieces on top of squares
         self.draw_coordinates(screen)  # draw coordinates on board
         self.draw_move_information(screen)  # draw move information
@@ -405,10 +408,9 @@ class ChessMain:
 
             p.display.flip()
             clock.tick(self.json_parser.get_by_key('MAX_FPS'))
-        
+
         # call audio function after animation
         self.game_audio(move, settings)
-
 
     def game(self, settings):
         """
@@ -478,8 +480,8 @@ class ChessMain:
 
                 self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves
 
-
-    def set_volume(self, settings, audio):
+    @staticmethod
+    def set_volume(settings, audio):
         """
         Method for changing volume based on settings.
         :param settings:
@@ -489,7 +491,6 @@ class ChessMain:
         for key, value in audio['SOUND'].items():
             if settings == value['NAME']:
                 return value['VOLUME']
-
 
     def game_audio(self, move, settings):
         """
@@ -501,7 +502,7 @@ class ChessMain:
         if self.game_state.in_check():
             sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CHECK'))  # check
         elif move.isCastleMove:
-           sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CASTLE'))  # castle
+            sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CASTLE'))  # castle
         elif move.pieceCaptured != "--":
             sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CAPTURE'))  # capture
         else:
