@@ -228,6 +228,102 @@ class ChessMain:
             notation_text.append(move_string)
 
         self.draw_text_move_log_panel(screen, move_log_panel, move_log_rectangle, font, notation_text)
+  
+    def highlight_squares(self, screen, move_from, move_to):
+        """
+        Method for highlighting squares on the board.
+        :param screen:
+        :param move_from:
+        :param move_to:
+        :return:
+        """
+        s = p.Surface((self.SQ_SIZE, self.SQ_SIZE))
+        colors_palette = self.json_parser.get_by_key('HIGHLIGHT_COLORS')
+
+        # last move coloring
+        if len(self.game_state.moveLog) != 0:
+            self.highlight_squares_move_colors(screen, s, colors_palette)
+
+        # is check coloring
+        if self.game_state.in_check():
+            s.fill(p.Color(colors_palette['IN_CHECK']))
+            if self.game_state.whiteToMove:
+                screen.blit(s, (self.game_state.whiteKingLocation[1] * self.SQ_SIZE, self.game_state.whiteKingLocation[0] * self.SQ_SIZE))
+            else:
+                screen.blit(s, (self.game_state.blackKingLocation[1] * self.SQ_SIZE, self.game_state.blackKingLocation[0] * self.SQ_SIZE))
+
+        # rest colorings
+        if move_from == move_to and (move_from is not None or move_to is not None):
+            self.highlight_squares_moves(screen, s, colors_palette, move_from)
+
+    def highlight_squares_moves(self, screen, s, colors_palette, move_from):
+        """
+        For the rest of square moves highlighting.
+        :param screen:
+        :param s:
+        :param colors_palette:
+        :param move_from:
+        :return:
+        """
+        row, col = move_from
+
+        if self.game_state.board[row][col][0] == ('w' if self.game_state.whiteToMove else 'b'):
+
+            # selected square coloring
+            if self.game_state.in_check() and move_from == self.game_state.whiteKingLocation:
+                pass
+            else:
+                s.fill(p.Color(colors_palette['SELECTED_SQUARE']))
+                screen.blit(s, (col * self.SQ_SIZE, row * self.SQ_SIZE))
+
+            for move in self.valid_moves:
+                if move.startRow == row and move.startCol == col:
+
+                    # possible moves from selected square
+                    if (move.endRow + move.endCol) % 2 == 0:
+                        s.fill(p.Color(colors_palette['MOVE_TO_BRIGHT']))
+                    else:
+                        s.fill(p.Color(colors_palette['MOVE_TO_DARK']))
+                    screen.blit(s, (move.endCol * self.SQ_SIZE, move.endRow * self.SQ_SIZE))
+
+                    # possible captures coloring
+                    if self.game_state.board[move.endRow][move.endCol][0] == ('b' if self.game_state.whiteToMove else 'w') or move.isEnPassantMove:
+                        if (move.endRow + move.endCol) % 2 == 0:
+                            s.fill(p.Color(colors_palette['CAPTURE_BRIGHT']))
+                        else:
+                            s.fill(p.Color(colors_palette['CAPTURE_DARK']))
+                        screen.blit(s, (move.endCol * self.SQ_SIZE, move.endRow * self.SQ_SIZE))
+
+    def highlight_squares_move_colors(self, screen, surface, colors_palette):
+        """
+        Color last move squares to green.
+        :param screen:
+        :param surface:
+        :param colors_palette:
+        :return:
+        """
+        start_row = self.game_state.moveLog[-1].startRow
+        start_col = self.game_state.moveLog[-1].startCol
+        end_row = self.game_state.moveLog[-1].endRow
+        end_col = self.game_state.moveLog[-1].endCol
+
+        if (start_row + start_col) % 2 == 0:
+            surface.fill(p.Color(colors_palette['LAST_MOVE_BRIGHT']))
+        else:
+            surface.fill(p.Color(colors_palette['LAST_MOVE_DARK']))
+
+        if self.game_state.moveLog[-1].isCastleMove:
+            surface.fill(p.Color(colors_palette['CASTLE']))
+        screen.blit(surface, (start_col * self.SQ_SIZE, start_row * self.SQ_SIZE))
+
+        if (end_row + end_col) % 2 == 0:
+            surface.fill(p.Color(colors_palette['LAST_MOVE_BRIGHT']))
+        else:
+            surface.fill(p.Color(colors_palette['LAST_MOVE_DARK']))
+
+        if self.game_state.moveLog[-1].isCastleMove:
+            surface.fill(p.Color(colors_palette['CASTLE']))
+        screen.blit(surface, (end_col * self.SQ_SIZE, end_row * self.SQ_SIZE))
 
     def draw_game_state(self, screen, move_log_font, settings):
         """
