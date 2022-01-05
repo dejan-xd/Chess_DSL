@@ -60,6 +60,13 @@ class GameState:
         self.castleRightsLog = [CastleRights.CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,
                                                           self.currentCastlingRights.wqs, self.currentCastlingRights.bqs)]
 
+    def is_human_turn(self):
+        """
+        Return if it is humans turn to play. Return True or False.
+        :return:
+        """
+        return (self.whiteToMove and self.player_one) or (not self.whiteToMove and self.player_two)
+
     def make_move(self, move):
         """
         Takes a move as a parameter and executes it (this will not work for castling, pawn promotion, and en-passant).

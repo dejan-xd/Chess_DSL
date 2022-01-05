@@ -47,9 +47,9 @@ def new_game_menu(screen):
     hard = draw_button(screen, board_width, board_height // 2 + 5, button_names['HARD'])
     back = draw_button(screen, board_width, board_height // 2 + 80, json_data['BACK'])
 
-    easy.onRelease = lambda: white_or_black_menu(screen)
-    medium.onRelease = lambda: white_or_black_menu(screen)
-    hard.onRelease = lambda: white_or_black_menu(screen)
+    easy.onRelease = lambda: white_or_black_menu(screen, 0)
+    medium.onRelease = lambda: white_or_black_menu(screen, 1)
+    hard.onRelease = lambda: white_or_black_menu(screen, 2)
     back.onRelease = lambda: main_menu(screen)
 
     buttons = []
@@ -57,10 +57,11 @@ def new_game_menu(screen):
     draw_state(screen, json_data['DIFFICULTY'], buttons)
 
 
-def white_or_black_menu(screen):
+def white_or_black_menu(screen, difficulty):
     """
     Chose white or black pieces to play with.
     :param screen:
+    :param difficulty:
     :return:
     """
     name, board_width, board_height, settings = Json.get_json_data(json_data)
@@ -70,8 +71,8 @@ def white_or_black_menu(screen):
     black = draw_button(screen, board_width, board_height // 2, button_names['BLACK'])
     back = draw_button(screen, board_width, board_height // 2 + 80, json_data['BACK'])
 
-    white.onRelease = lambda: start_game(settings, "w")
-    black.onRelease = lambda: start_game(settings, "b")
+    white.onRelease = lambda: start_game(settings, difficulty, "w")
+    black.onRelease = lambda: start_game(settings, difficulty, "b")
     back.onRelease = lambda: new_game_menu(screen)
 
     buttons = []
@@ -209,8 +210,9 @@ def get_color(color, settings, sound_choices):
     return p.Color(color['HOVER']) if settings['SOUND'] == sound_choices else p.Color(color['INITIAL'])
 
 
-def start_game(settings, play_as):
+def start_game(settings, difficulty, play_as):
     settings['PIECE_COLOR'] = play_as
+    settings['DIFFICULTY'] = difficulty
     Json.write_to_json(json_data)
 
     chess_main = ChessMain()
