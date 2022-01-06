@@ -3,7 +3,8 @@ from JsonParser import JsonParser
 
 class Utils:
     def __init__(self):
-        self.json_parser = JsonParser()
+        self.file = "settings.json"
+        self.json_parser = JsonParser(self.file)
 
     def piece_name(self, game_state, piece):
         """
@@ -71,35 +72,42 @@ class Utils:
         :return:
         """
         pr_cm = undo_print = castle_used_print = None
+        castling_rights = []
+        if game_state.player_one:
+            castling_rights.append(game_state.currentCastlingRights.wks)
+            castling_rights.append(game_state.currentCastlingRights.wqs)
+        else:
+            castling_rights.append(game_state.currentCastlingRights.bks)
+            castling_rights.append(game_state.currentCastlingRights.bqs)
 
         if cm in self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'SERBIAN', 'COMMANDS'):
             pr_cm = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'SERBIAN', 'PRINT_COMMAND')
             undo_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'SERBIAN', 'UNDO_PRINT')
-            if game_state.castleUsed:
+            if False in castling_rights:
                 castle_used_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'SERBIAN', 'CASTLE_PRINT')
 
         elif cm in self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'ENGLISH', 'COMMANDS'):
             pr_cm = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'ENGLISH', 'PRINT_COMMAND')
             undo_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'ENGLISH', 'UNDO_PRINT')
-            if game_state.castleUsed:
+            if False in castling_rights:
                 castle_used_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'ENGLISH', 'CASTLE_PRINT')
 
         elif cm in self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'SPANISH', 'COMMANDS'):
             pr_cm = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'SPANISH', 'PRINT_COMMAND')
             undo_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'SPANISH', 'UNDO_PRINT')
-            if game_state.castleUsed:
+            if False in castling_rights:
                 castle_used_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'SPANISH', 'CASTLE_PRINT')
 
         elif cm in self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'GERMAN', 'COMMANDS'):
             pr_cm = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'GERMAN', 'PRINT_COMMAND')
             undo_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'GERMAN', 'UNDO_PRINT')
-            if game_state.castleUsed:
+            if False in castling_rights:
                 castle_used_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'GERMAN', 'CASTLE_PRINT')
 
         elif cm in self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'FRENCH', 'COMMANDS'):
             pr_cm = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'FRENCH', 'PRINT_COMMAND')
             undo_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'FRENCH', 'UNDO_PRINT')
-            if game_state.castleUsed:
+            if False in castling_rights:
                 castle_used_print = self.json_parser.get_by_key('LANGUAGE_COMMANDS', 'FRENCH', 'CASTLE_PRINT')
 
         return pr_cm, undo_print, castle_used_print

@@ -82,7 +82,7 @@ class InputThread(threading.Thread):
                 self.print_text(pr_command, self.input_command + "' - " + undo_print, "gold")
 
         elif game_command == 'castling short' or game_command == 'castling long':
-            if not game_state.castleUsed:
+            if castle_used_print is None:
                 self.print_text(pr_command, self.input_command, "dodgerblue")
             else:
                 self.print_text(pr_command, castle_used_print, "gold")
@@ -150,7 +150,7 @@ class InputThread(threading.Thread):
                 for i in range(len(valid_moves)):
                     if move == valid_moves[i]:
                         print(colored(">>> OK", "green"))
-                        self.add_to_information_dict("MOVE: " + ChessMain.ChessMain().user_text.lower() + " >>> OK", "olivedrab3")
+                        self.add_to_information_dict("MOVE: " + self.input_command.lower() + " >>> OK", "olivedrab3")
                         break
 
                 if move not in valid_moves:
