@@ -16,8 +16,9 @@ class InputThread(threading.Thread):
         self.rowsToRanks = {v: k for v, k in Move.Move.ranksToRows.items()}
         self.colsToFiles = {v: k for v, k in Move.Move.filesToCols.items()}
         self.enter = False
-        self.multiple_moves = False
-        self.json_parser = JsonParser()
+        self.disambiguating_moves = False
+        self.file = "settings.json"
+        self.json_parser = JsonParser(self.file)
 
     def input_notation(self, coordination):
         """
@@ -78,7 +79,7 @@ class InputThread(threading.Thread):
         """
         piece = self.piece_name(game_state, chess_model.commands[0].piece)
         input_split = self.input_command.split(' ')
-        self.multiple_moves = False
+        self.disambiguating_moves = False
         nbr_of_multi_moves = 0
 
         # if user input is in form of "piece move to" (pawn e4)
@@ -95,12 +96,13 @@ class InputThread(threading.Thread):
                             if move == valid_moves[i]:
                                 self.move_from = (row, col)
                                 nbr_of_multi_moves += 1
+                                # TODO multiple moves chess notation
                                 break
 
             # in case multiple same pieces can go to that square
             if nbr_of_multi_moves > 1:
                 self.move_from = None
-                self.multiple_moves = True
+                self.disambiguating_moves = True
 
             # in case user wants only to select the piece
             if game_state.board[self.move_to[0]][self.move_to[1]] == piece:
@@ -116,7 +118,7 @@ class InputThread(threading.Thread):
         else:
             return
 
-        if not self.multiple_moves:
+        if not self.disambiguating_moves:
             if self.move_from != self.move_to:
                 move = Move.Move(self.move_from, self.move_to, game_state.board)
                 for i in range(len(valid_moves)):

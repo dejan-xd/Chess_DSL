@@ -20,7 +20,8 @@ def init():
     Method for running the project.
     :return:
     """
-    json_parser = JsonParser()
+    file = "settings.json"
+    json_parser = JsonParser(file)
     json_parser.read_json()
 
     json_data = Json.read_from_json()

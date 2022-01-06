@@ -5,8 +5,8 @@ import json
 
 
 class JsonParser:
-    def __init__(self):
-        self.file = "settings.json"
+    def __init__(self, file):
+        self.file = file
         self.read = "r"
         self.write = "w"
         self.utf = "utf8"

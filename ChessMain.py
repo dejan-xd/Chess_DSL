@@ -7,13 +7,15 @@ import time
 import GameState
 import Move
 from JsonParser import JsonParser
+import ChessAI
 
 game_state = GameState.GameState()
 
 
 class ChessMain:
     def __init__(self):
-        self.json_parser = JsonParser()
+        self.file = "settings.json"
+        self.json_parser = JsonParser(self.file)
         # Izbaciti kad vise se ne bude koristilo
         self.json_data = Json.read_from_json()
         self.user_text = ""
@@ -228,7 +230,7 @@ class ChessMain:
             notation_text.append(move_string)
 
         self.draw_text_move_log_panel(screen, move_log_panel, move_log_rectangle, font, notation_text)
-  
+
     def highlight_squares(self, screen, move_from, move_to):
         """
         Method for highlighting squares on the board.
@@ -368,18 +370,20 @@ class ChessMain:
 
         return move_from, move_to
 
-    def move_logic(self, move_made, animate):
+    def move_logic(self, move_made, animate, human_turn):
         """
         Logic for pasting/reading the move from game console and executing player's move.
+
         :param move_made:
         :param animate:
+        :param human_turn:
         :return:
         """
         self.it.enter = True
         self.it.input_command = "print('" + self.user_text.lower() + "')"
         time.sleep(0.1)  # wait for another thread to get all information
 
-        if not self.game_state.game_over:
+        if not self.game_state.game_over and human_turn:
             move_from, move_to = self.get_move()
 
             if move_from is not None and move_to is not None:
@@ -413,7 +417,7 @@ class ChessMain:
         castle_color = self.board_colors[(rock_start_end_row + rock_end_col) % 2]
 
         return rock_piece, rock_row, rock_col, castle_color, rock_end_square
-    
+
     def animate_castle_move(self, move, delta_col, frame, frame_count):
         """
         Method for animating castle move.
@@ -429,12 +433,12 @@ class ChessMain:
 
             # king side castle
             if delta_col == 2:
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 7, 7, 2, 5, is_short=True)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_logic_animation(frame, frame_count, rock_piece, 7, 7, 2, 5, is_short=True)
                 return rock_piece, rock_row, rock_col, castle_color, rock_end_square
 
             # queen side castle
             elif delta_col == -2:
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 7, 0, 3, 3, is_short=False)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_logic_animation(frame, frame_count, rock_piece, 7, 0, 3, 3, is_short=False)
                 return rock_piece, rock_row, rock_col, castle_color, rock_end_square
 
         # black castling
@@ -443,11 +447,11 @@ class ChessMain:
 
             # black king side castle
             if delta_col == 2:
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 0, 7, 2, 5, is_short=True)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_logic_animation(frame, frame_count, rock_piece, 0, 7, 2, 5, is_short=True)
                 return rock_piece, rock_row, rock_col, castle_color, rock_end_square
 
             elif delta_col == -2:  # black queen side castle
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 0, 0, 3, 3, is_short=False)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_logic_animation(frame, frame_count, rock_piece, 0, 0, 3, 3, is_short=False)
                 return rock_piece, rock_row, rock_col, castle_color, rock_end_square
 
     def animate_move(self, move, screen, board, clock, settings):
@@ -471,7 +475,7 @@ class ChessMain:
 
             # animation castle move
             if move.isCastleMove:
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move(move, delta_col, frame, frame_count)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_animation(move, delta_col, frame, frame_count)
 
             # redraw
             self.draw_board(screen)
@@ -497,7 +501,7 @@ class ChessMain:
 
             # draw moving piece
             screen.blit(self.IMAGES[move.pieceMoved], p.Rect(col * self.SQ_SIZE, row * self.SQ_SIZE, self.SQ_SIZE, self.SQ_SIZE))
-            
+
             # draw rock piece after castling
             if move.isCastleMove:
                 screen.blit(self.IMAGES[rock_piece], p.Rect(rock_col * self.SQ_SIZE, rock_row * self.SQ_SIZE, self.SQ_SIZE, self.SQ_SIZE))
@@ -507,6 +511,16 @@ class ChessMain:
 
         # call audio function after animation
         self.game_audio(move, settings)
+
+    def ai_move_logic(self):
+        """
+        Logic for executing AI's move.
+        :return:
+        """
+        ai = ChessAI.ChessAI().find_best_move(self.game_state, self.valid_moves)  # find best move
+        if ai is None:
+            ai = ChessAI.ChessAI().find_random_move(self.valid_moves)
+        game_state.make_move(ai)
 
     def game(self, settings):
         """
@@ -520,9 +534,10 @@ class ChessMain:
         screen = p.display.set_mode((self.json_parser.get_by_key('BOARD_WIDTH') + self.json_parser.get_by_key('MOVE_LOG_PANEL_WIDTH'),
                                      self.json_parser.get_by_key('BOARD_HEIGHT') + self.json_parser.get_by_key('MOVE_INFORMATION_HEIGHT') + self.json_parser.get_by_key(
                                          'CONSOLE_HEIGHT')))
-        move_log_font = p.font.SysFont(self.json_parser.get_by_key('MOVE_LOG_FONT', 'FONT'), self.json_parser.get_by_key('MOVE_LOG_FONT', 'SIZE'), False, False)
 
         self.load_images()  # do this only once, before the while loop
+
+        move_log_font = p.font.SysFont(self.json_parser.get_by_key('MOVE_LOG_FONT', 'FONT'), self.json_parser.get_by_key('MOVE_LOG_FONT', 'SIZE'), False, False)
 
         if settings['PIECE_COLOR'] == "w":
             self.game_state.player_one = True
@@ -535,6 +550,8 @@ class ChessMain:
             self.draw_game_state(screen, move_log_font, settings)
             clock.tick(self.json_parser.get_by_key('MAX_FPS'))  # refresh screen frame rate
             p.display.flip()  # draw the game
+
+            human_turn = self.game_state.is_human_turn()
 
             for event in p.event.get():
                 if event.type == p.QUIT:  # command to exit the game
@@ -549,9 +566,10 @@ class ChessMain:
                         self.user_text = Tk().clipboard_get()
 
                     elif event.key == p.K_RETURN:
-                        move_made, animate = self.move_logic(move_made, animate)  # move logic
+                        move_made, animate = self.move_logic(move_made, animate, human_turn)  # move logic
 
                         if self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'UNDO') and not self.game_state.game_over:
+                            self.game_state.undo_move()
                             self.game_state.undo_move()
                             move_made = True
                             animate = False
@@ -566,11 +584,16 @@ class ChessMain:
                         if len(self.user_text) != 50:
                             self.user_text += event.unicode
 
+            # AI move logic
+            if not game_state.game_over and not human_turn:
+                self.ai_move_logic()
+                move_made = animate = True
+
             # logic when move has been made
             if move_made:
                 # For piece move animation
                 if animate:
-                    self.animate_move(self.game_state.moveLog[-1], screen, self.game_state.board, clock, settings)
+                    self.move_animation(self.game_state.moveLog[-1], screen, self.game_state.board, clock, settings)
                 move_made = animate = False
                 self.it.input_command = self.it.move_from = self.it.move_to = None
 
@@ -607,8 +630,7 @@ class ChessMain:
         sound.set_volume(self.set_volume(settings['SOUND'], self.json_parser.get_by_key('AUDIO')))  # read default settings from list
         sound.play()
 
-    
-    def animate_castle_move_logic(self, frame, frame_count, rock_piece, rock_start_end_row, rock_start_col, rock_move_col, rock_end_col, is_short):
+    def castle_move_logic_animation(self, frame, frame_count, rock_piece, rock_start_end_row, rock_start_col, rock_move_col, rock_end_col, is_short):
         """
         Logic behind animating castle move. Creates smooth piece sliding for top piece.
         :param frame:
@@ -630,8 +652,8 @@ class ChessMain:
         castle_color = self.board_colors[(rock_start_end_row + rock_end_col) % 2]
 
         return rock_piece, rock_row, rock_col, castle_color, rock_end_square
-    
-    def animate_castle_move(self, move, delta_col, frame, frame_count):
+
+    def castle_move_animation(self, move, delta_col, frame, frame_count):
         """
         Method for animating castle move.
         :param move:
@@ -646,12 +668,12 @@ class ChessMain:
 
             # king side castle
             if delta_col == 2:
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 7, 7, 2, 5, is_short=True)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_logic_animation(frame, frame_count, rock_piece, 7, 7, 2, 5, is_short=True)
                 return rock_piece, rock_row, rock_col, castle_color, rock_end_square
 
             # queen side castle
             elif delta_col == -2:
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 7, 0, 3, 3, is_short=False)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_logic_animation(frame, frame_count, rock_piece, 7, 0, 3, 3, is_short=False)
                 return rock_piece, rock_row, rock_col, castle_color, rock_end_square
 
         # black castling
@@ -660,14 +682,14 @@ class ChessMain:
 
             # black king side castle
             if delta_col == 2:
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 0, 7, 2, 5, is_short=True)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_logic_animation(frame, frame_count, rock_piece, 0, 7, 2, 5, is_short=True)
                 return rock_piece, rock_row, rock_col, castle_color, rock_end_square
 
             elif delta_col == -2:  # black queen side castle
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move_logic(frame, frame_count, rock_piece, 0, 0, 3, 3, is_short=False)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_logic_animation(frame, frame_count, rock_piece, 0, 0, 3, 3, is_short=False)
                 return rock_piece, rock_row, rock_col, castle_color, rock_end_square
-    
-    def animate_move(self, move, screen, board, clock, settings):
+
+    def move_animation(self, move, screen, board, clock, settings):
         """
         Method for animating a move on the chess board.
         :param move:
@@ -688,7 +710,7 @@ class ChessMain:
 
             # animation castle move
             if move.isCastleMove:
-                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.animate_castle_move(move, delta_col, frame, frame_count)
+                rock_piece, rock_row, rock_col, castle_color, rock_end_square = self.castle_move_animation(move, delta_col, frame, frame_count)
 
             # redraw
             self.draw_board(screen)
