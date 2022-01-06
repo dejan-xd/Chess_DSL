@@ -2,8 +2,9 @@ import threading
 import Move
 import ChessMain
 from JsonParser import JsonParser
-from textx import metamodel_from_file
+from textx import metamodel_from_file, TextXError
 from termcolor import colored
+from Utils import Utils
 
 
 class InputThread(threading.Thread):
@@ -19,6 +20,7 @@ class InputThread(threading.Thread):
         self.disambiguating_moves = False
         self.file = "settings.json"
         self.json_parser = JsonParser(self.file)
+        self.information = {}
 
     def input_notation(self, coordination):
         """
@@ -35,37 +37,61 @@ class InputThread(threading.Thread):
         except KeyError:
             pass
 
-    def piece_name(self, game_state, piece):
+    def add_to_information_dict(self, text, color):
         """
-        Method for creating English abbreviation name for each chess piece for each language.
-        :param game_state:
-        :param piece:
+        """
+        key = len(self.information)
+        self.information[key] = [text, color]
+
+        return self.information
+
+    def print_text(self, command, print_command, color):
+        """
+        Print function for console writing.
+        :param command:
+        :param print_command:
+        :param color:
         :return:
         """
-        if game_state.whiteToMove:
-            PIECE_COLOR = 'w'
-        else:
-            PIECE_COLOR = 'b'
+        color_print = None
+        if color == "gold":
+            color_print = "yellow"
+        elif color == "dodgerblue":
+            color_print = "blue"
 
-        if piece in self.json_parser.get_by_key('PION'):
-            piece = PIECE_COLOR + 'p'
+        print(colored(">>> " + command.upper() + ": '" + print_command.upper() + "'", color_print))
+        self.add_to_information_dict(command.upper() + ": '" + print_command.upper(), color)
 
-        elif piece in self.json_parser.get_by_key('KNIGHT'):
-            piece = PIECE_COLOR + 'N'
+    def handler_commands(self, chess_model, game_state):
+        """
+        Read user input and determine which handler command is called and determine what kind of print_text() function should be called.
+        :param chess_model: textx model
+        :param game_state: current game state
+        :return: command name as last user input so GameState can work with it
+        """
+        command = chess_model.commands[0].handler
+        game_command = Utils().get_game_command(command)
+        pr_command, undo_print, castle_used_print = Utils().print_command(game_state, command)
 
-        elif piece in self.json_parser.get_by_key('BISHOP'):
-            piece = PIECE_COLOR + 'B'
+        if game_command == 'undo':
+            if game_state.game_over:
+                pass
+            elif len(game_state.moveLog) != 0:
+                self.print_text(pr_command, self.input_command, "dodgerblue")
+            else:
+                self.print_text(pr_command, self.input_command + "' - " + undo_print, "gold")
 
-        elif piece in self.json_parser.get_by_key('ROOK'):
-            piece = PIECE_COLOR + 'R'
+        elif game_command == 'castling short' or game_command == 'castling long':
+            if not game_state.castleUsed:
+                self.print_text(pr_command, self.input_command, "dodgerblue")
+            else:
+                self.print_text(pr_command, castle_used_print, "gold")
 
-        elif piece in self.json_parser.get_by_key('QUEEN'):
-            piece = PIECE_COLOR + 'Q'
+        elif game_command == 'restart' or game_command == 'new' or game_command == 'exit':
+            self.print_text(pr_command, self.input_command, "dodgerblue")
 
-        elif piece in self.json_parser.get_by_key('KING'):
-            piece = PIECE_COLOR + 'K'
-
-        return piece
+        self.input_command = game_command
+        return self.input_command
 
     def move_command(self, chess_model, game_state, valid_moves):
         """
@@ -77,7 +103,7 @@ class InputThread(threading.Thread):
         :param valid_moves:
         :return:
         """
-        piece = self.piece_name(game_state, chess_model.commands[0].piece)
+        piece = Utils().piece_name(game_state, chess_model.commands[0].piece)
         input_split = self.input_command.split(' ')
         self.disambiguating_moves = False
         nbr_of_multi_moves = 0
@@ -124,13 +150,16 @@ class InputThread(threading.Thread):
                 for i in range(len(valid_moves)):
                     if move == valid_moves[i]:
                         print(colored(">>> OK", "green"))
+                        self.add_to_information_dict("MOVE: " + ChessMain.ChessMain().user_text.lower() + " >>> OK", "olivedrab3")
                         break
 
                 if move not in valid_moves:
                     print(colored(">>> Info: That move is not in the list of valid moves.", "yellow"))
+                    self.add_to_information_dict(">>> Info: That move is not in the list of valid moves.", "gold")
 
         else:
             print(colored(">>> Info: Possible multiple moves for: " + self.input_command, "yellow"))
+            self.add_to_information_dict(">>> Info: Possible multiple moves for: " + self.input_command, "gold")
 
     def run(self):
         """
@@ -141,21 +170,37 @@ class InputThread(threading.Thread):
         """
         chess_mm = metamodel_from_file('textX/chess_rules.tx', ignore_case=True)
         while True:
-            game_state = ChessMain.ChessMain().game_state
-            if self.enter:
-                self.move_from = self.move_to = None
-                self.enter = False
+            try:
+                game_state = ChessMain.ChessMain().game_state
+                if self.enter:
+                    self.move_from = self.move_to = None
+                    self.enter = False
 
-                exec(self.input_command, globals())
+                    exec(self.input_command, globals())
 
-                input_command_split = self.input_command.split("'")
-                self.input_command = input_command_split[1]
+                    input_command_split = self.input_command.split("'")
+                    self.input_command = input_command_split[1]
 
-                chess_model = chess_mm.model_from_str(self.input_command)
-                valid_moves = ChessMain.ChessMain().valid_moves
+                    chess_model = chess_mm.model_from_str(self.input_command)
+                    valid_moves = ChessMain.ChessMain().valid_moves
 
-                if hasattr(chess_model.commands[0], "handler"):
-                    pass
+                    if hasattr(chess_model.commands[0], "handler"):
+                        self.handler_commands(chess_model, game_state)
+                    else:
+                        self.move_command(chess_model, game_state, valid_moves)
+                        print(self.move_from)
+            except TypeError:
+                if self.move_to is None:
+                    print(colored(">>> TypeError: an invalid reference was made!", "red"))
+                    self.add_to_information_dict("TypeError: an invalid reference was made! -- " + ChessMain.ChessMain().user_text.lower(), "brown1")
                 else:
-                    self.move_command(chess_model, game_state, valid_moves)
-                    print(self.move_from)
+                    print(colored(">>> Info: That move is not in the list of valid moves.", "yellow"))
+                    self.add_to_information_dict(">>> Info: That move is not in the list of valid moves.", "gold")
+
+            except AttributeError:
+                print(colored(">>> AttributeError: invalid attribute!", "red"))
+                self.add_to_information_dict("AttributeError: invalid attribute! -- " + ChessMain.ChessMain().user_text.lower(), "brown1")
+
+            except TextXError:
+                print(colored(">>> textXError: error while parsing string!", "red"))
+                self.add_to_information_dict("textXError: error while parsing input! -- " + ChessMain.ChessMain().user_text.lower(), "brown1")

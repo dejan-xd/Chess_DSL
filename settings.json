@@ -215,5 +215,116 @@
     "rey",
     "könig",
     "roi"
-  ]
+  ],
+  "UNDO": [
+    "ponisti",
+    "poništi",
+    "undo",
+    "deshacer",
+    "rückgängig machen",
+    "annuler"
+  ],
+  "RESTART": [
+    "ponovo pokreni",
+    "restart",
+    "reiniciar",
+    "neu starten",
+    "redémarrage"
+  ],
+  "EXIT": [
+    "izlaz",
+    "exit",
+    "salida",
+    "ausfahrt",
+    "sortir"
+  ],
+  "CASTLING_SHORT": [
+    "mala rokada",
+    "castling short",
+    "enroque corto",
+    "kurze rochade",
+    "petit roque"
+  ],
+  "CASTLING_LONG": [
+    "velika rokada",
+    "castling long",
+    "enroque largo",
+    "lange rochade",
+    "grand roque"
+  ],
+  "NEW_GAME": [
+    "nova igra",
+    "new game",
+    "nuevo juego",
+    "neues spiel",
+    "nouveau jeu"
+  ],
+  "LANGUAGE_COMMANDS": {
+    "SERBIAN": {
+      "COMMANDS": [
+        "ponisti",
+        "poništi",
+        "ponovo pokreni",
+        "izlaz",
+        "mala rokada",
+        "velika rokada",
+        "nova igra"
+      ],
+      "PRINT_COMMAND": "komanda",
+      "UNDO_PRINT": "Nema šta da se poništi.",
+      "CASTLE_PRINT": "Rokada već iskorišćena."
+    },
+    "ENGLISH": {
+      "COMMANDS": [
+        "undo",
+        "restart",
+        "exit",
+        "castling short",
+        "castling long",
+        "new game"
+      ],
+      "PRINT_COMMAND": "command",
+      "UNDO_PRINT": "Nothing to undo.",
+      "CASTLE_PRINT": "Castling already used."
+    },
+    "SPANISH": {
+      "COMMANDS": [
+        "deshacer",
+        "reiniciar",
+        "salida",
+        "enroque corto",
+        "enroque largo",
+        "nuevo juego"
+      ],
+      "PRINT_COMMAND": "mando",
+      "UNDO_PRINT": "Nada que deshacer.",
+      "CASTLE_PRINT": "Enroque ya usado."
+    },
+    "GERMAN": {
+      "COMMANDS": [
+        "rückgängig machen",
+        "neu starten",
+        "ausfahrt",
+        "kurze rochade",
+        "lange rochade",
+        "neues spiel"
+      ],
+      "PRINT_COMMAND": "befehl",
+      "UNDO_PRINT": "Nichts rückgängig zu machen.",
+      "CASTLE_PRINT": "Rochade bereits verwendet."
+    },
+    "FRENCH": {
+      "COMMANDS": [
+        "annuler",
+        "redémarrage",
+        "sortir",
+        "petit roque",
+        "grand roque",
+        "nouveau jeu"
+      ],
+      "PRINT_COMMAND": "commander",
+      "UNDO_PRINT": "Rien à annuler.",
+      "CASTLE_PRINT": "Roque déjà utilisé."
+    }
+  }
 }
