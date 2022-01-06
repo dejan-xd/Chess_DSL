@@ -93,18 +93,29 @@ class ChessMain:
                 text_location = p.Rect(row_list.index(row) * self.SQ_SIZE, col_list.index(col) * self.SQ_SIZE, self.json_data['BOARD_WIDTH'], self.json_data['BOARD_HEIGHT'])
                 screen.blit(text_object, text_location)
 
-    def draw_move_information(self, screen):
+    def draw_move_information(self, screen, font):
         """
         Method for drawing panel which will display move information.
         :param screen:
+        :param font:
         :return:
         """
 
-        console_panel = self.json_data['CONSOLE_PANEL']
+        console_panel = self.json_parser.get_by_key('CONSOLE_PANEL')
         move_information_rectangle = self.create_move_information_rectangle()
 
         p.draw.rect(screen, p.Color(console_panel['PANEL_COLOR']), move_information_rectangle)
         p.draw.rect(screen, p.Color(console_panel['BORDER_COLOR']), move_information_rectangle, 1)
+        
+        text_y = 5
+        for i in range(len(self.it.information)):
+
+            text_object = font.render(self.it.information[i][0], True, p.Color(self.it.information[i][1]))
+            text_location = move_information_rectangle.move(5, i * text_y)
+            screen.blit(text_object, text_location)
+
+            text_y += text_object.get_height() + 5  # draw text one under another
+
 
     def draw_console(self, screen, font):
         """
@@ -339,7 +350,7 @@ class ChessMain:
         self.highlight_squares(screen, self.it.move_from, self.it.move_to)  # highlight squares
         self.draw_pieces(screen, self.game_state.board)  # draw pieces on top of squares
         self.draw_coordinates(screen)  # draw coordinates on board
-        self.draw_move_information(screen)  # draw move information
+        self.draw_move_information(screen, move_log_font)  # draw move information
         self.draw_console(screen, move_log_font)  # draw console for inputs
         self.draw_move_log(screen, move_log_font, settings)  # draw move log for chess notations
 

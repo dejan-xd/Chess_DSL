@@ -17,11 +17,13 @@ class JsonParser:
         self.data = json.loads(json_file.read())
         json_file.close()
 
-    def get_by_key(self, key1, key2=None):
+    def get_by_key(self, key1, key2=None, key3=None):
         if key2 is None:
             return self.data[key1]
-        else:
+        elif key3 is None:
             return self.data[key1][key2]
+        else:
+            return self.data[key1][key2][key3]
 
     def set_new_json(self, new_json):
         json_file = open(self.file, self.write, encoding=self.utf)
