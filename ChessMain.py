@@ -100,7 +100,6 @@ class ChessMain:
         :param font:
         :return:
         """
-
         console_panel = self.json_parser.get_by_key('CONSOLE_PANEL')
         move_information_rectangle = self.create_move_information_rectangle()
 
@@ -111,11 +110,10 @@ class ChessMain:
         for i in range(len(self.it.information)):
 
             text_object = font.render(self.it.information[i][0], True, p.Color(self.it.information[i][1]))
-            text_location = move_information_rectangle.move(5, i * text_y)
+            text_location = move_information_rectangle.move(5, text_y)
             screen.blit(text_object, text_location)
 
             text_y += text_object.get_height() + 5  # draw text one under another
-
 
     def draw_console(self, screen, font):
         """
@@ -552,8 +550,10 @@ class ChessMain:
 
         if settings['PIECE_COLOR'] == "w":
             self.game_state.player_one = True
+            player_turn = True
         elif settings['PIECE_COLOR'] == "b":
             self.game_state.player_two = True
+            player_turn = False
 
         move_made = animate = False  # flags
 
@@ -596,7 +596,7 @@ class ChessMain:
                             self.user_text += event.unicode
 
             # AI move logic
-            if not game_state.game_over and not human_turn:
+            if not game_state.game_over and not player_turn:
                 self.ai_move_logic()
                 move_made = animate = True
 
@@ -606,6 +606,7 @@ class ChessMain:
                 if animate:
                     self.move_animation(self.game_state.moveLog[-1], screen, self.game_state.board, clock, settings)
                 move_made = animate = False
+                player_turn = not player_turn
                 self.it.input_command = self.it.move_from = self.it.move_to = None
 
                 self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves

@@ -50,7 +50,6 @@ class GameState:
         self.enpassantPossible = ()  # coordinates for the square where en passant capture is possible
         self.enpassantPossibleLog = [self.enpassantPossible]
 
-        self.castleUsed = False
         self.whiteKingCastleLocationKingSide = (7, 6)
         self.whiteKingCastleLocationQueenSide = (7, 2)
         self.blackKingCastleLocationKingSide = (0, 6)
@@ -99,7 +98,6 @@ class GameState:
 
         # castle move
         if move.isCastleMove:
-            self.castleUsed = True
             if move.endCol - move.startCol == 2:  # king side castle move
                 self.board[move.endRow][move.endCol - 1] = self.board[move.endRow][move.endCol + 1]  # moves the rock
                 self.board[move.endRow][move.endCol + 1] = '--'  # erase old rock
@@ -153,11 +151,9 @@ class GameState:
                 if move.endCol - move.startCol == 2:  # king side
                     self.board[move.endRow][move.endCol + 1] = self.board[move.endRow][move.endCol - 1]
                     self.board[move.endRow][move.endCol - 1] = '--'
-                    self.castleUsed = False
                 else:  # queen side
                     self.board[move.endRow][move.endCol - 2] = self.board[move.endRow][move.endCol + 1]
                     self.board[move.endRow][move.endCol + 1] = '--'
-                    self.castleUsed = False
 
     def get_all_possible_moves(self):
         """
