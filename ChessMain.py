@@ -28,6 +28,9 @@ class ChessMain:
         self.player_turn = None
         self.notation_scroll_y = self.notation_text_height = 0  # for scrolling notation text
         self.console_scroll_y = self.console_text_height = 0  # for scrolling console text
+        self.white_threefold_counter = self.black_threefold_counter = self.fifty_move_rule_counter = 0  # counter for threefold moves and fifty move draw rule
+        self.counter_list_storage = []  # store all counters in list
+        self.threefold_list = []  # keep track of all moves so we can check if threefold happened
 
     def load_images(self):
         """
@@ -108,7 +111,7 @@ class ChessMain:
 
         p.draw.rect(screen, p.Color(console_panel['PANEL_COLOR']), move_information_rectangle)
         p.draw.rect(screen, p.Color(console_panel['BORDER_COLOR']), move_information_rectangle, 1)
-        
+
         text_y = 5
         for i in range(len(self.it.information)):
             text_position = self.console_scroll_y + text_y
@@ -580,6 +583,60 @@ class ChessMain:
         if self.player_turn and scroll_panel_height_console < 20:
             self.console_scroll_y -= 20
 
+    def undo_logic(self):
+        """
+        Method for executing the undo move logic.
+        :return:
+        """
+        for i in range(2):  # check twice for both human and AI move
+            current_board = []
+            self.game_state.undo_move()
+
+            for board in self.game_state.board:
+                current_board += ''.join(map(str, board))  # convert to string and store current board state
+            if current_board in self.threefold_list:
+                self.threefold_list.remove(current_board)
+
+        try:  # try catch block to prevent IndexError
+            self.white_threefold_counter = self.counter_list_storage[-3][0]
+            self.black_threefold_counter = self.counter_list_storage[-3][1]
+            self.fifty_move_rule_counter = self.counter_list_storage[-3][2]
+            del self.counter_list_storage[-2:]  # remove two last elements from counter_list_storage
+        except IndexError:
+            self.threefold_list.clear()
+            self.counter_list_storage.clear()
+            self.white_threefold_counter = self.black_threefold_counter = self.fifty_move_rule_counter = 0  # restart counter values
+
+    def move_made_logic(self, undo):
+        """
+        Logic if the move is made. Check if three fold or fifty move rule happened.
+        :param undo:
+        :return:
+        """
+        if not undo:
+            current_board = []
+            for board in self.game_state.board:
+                current_board += ''.join(map(str, board))
+
+            if current_board in self.threefold_list:  # if current board happened
+                if self.game_state.whiteToMove:
+                    self.black_threefold_counter += 1
+                else:
+                    self.white_threefold_counter += 1
+            else:
+                self.threefold_list.append(current_board)
+
+            move = self.game_state.moveLog[-1]  # take last move from move log
+            if move.pieceMoved[1] != 'p':  # check for fifty move draw rule
+                if move.pieceCaptured == '--':
+                    self.fifty_move_rule_counter += 1
+                else:
+                    self.fifty_move_rule_counter = 0
+            else:
+                self.fifty_move_rule_counter = 0
+
+            self.counter_list_storage.append([self.white_threefold_counter, self.black_threefold_counter, self.fifty_move_rule_counter])
+
     def game(self, settings):
         """
         The main driver for the code. This will handle user input and update the graphics.
@@ -607,7 +664,7 @@ class ChessMain:
             self.game_state.player_two = True
             self.player_turn = False
 
-        move_made = animate = False  # flags
+        move_made = animate = undo = False  # flags
 
         while True:
             self.draw_game_state(screen, move_log_font, settings)
@@ -641,9 +698,8 @@ class ChessMain:
                         move_made, animate = self.move_logic(move_made, animate, human_turn)  # move logic
 
                         if self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'UNDO') and not self.game_state.game_over:
-                            self.game_state.undo_move()
-                            self.game_state.undo_move()
-                            move_made = animate = False
+                            self.undo_logic()
+                            move_made = animate = undo = False
                             self.it.input_command = self.it.move_from = self.it.move_to = None
                             self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves
 
@@ -668,7 +724,9 @@ class ChessMain:
                 # For piece move animation
                 if animate:
                     self.move_animation(self.game_state.moveLog[-1], screen, self.game_state.board, clock, settings)
-                move_made = animate = False
+
+                self.move_made_logic(undo)
+                move_made = animate = undo = False
                 self.player_turn = not self.player_turn
                 self.it.input_command = self.it.move_from = self.it.move_to = None
 

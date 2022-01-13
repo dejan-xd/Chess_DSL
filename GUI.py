@@ -11,13 +11,14 @@ from JsonParser import JsonParser
 
 json_data = Json.read_from_json()
 
+
 class GUI:
     def __init__(self):
         self.file_settings = "settings.json"
         self.json_parser = JsonParser(self.file_settings)
         self.color = p.Color(self.json_parser.get_by_key('COLORS', 'INITIAL'))
-        self.write = "w"
-        self.character = "b"
+        self.white = "w"
+        self.black = "b"
         self.name, self.board_width, self.board_height, self.settings = self.json_parser.get_json_data()
 
     def draw_button(self, screen, width, height, button_text, colors=None):
@@ -27,19 +28,19 @@ class GUI:
         :param width:
         :param height:
         :param button_text:
-        :param color:
+        :param colors:
         :return:
         """
         hover = self.json_parser.get_by_key('COLORS', 'HOVER')
         shadow = self.json_parser.get_by_key('SHADOW_COLOR')
         gui_font = self.json_parser.get_by_key('GUI_FONT', 'FONT')
         gui_font_size = self.json_parser.get_by_key('GUI_FONT', 'SIZE')
-        use_color = colors if colors != None else self.color
-        
+        use_color = colors if colors is not None else self.color
+
         button = pw.Button(screen, width // 2 - 100, height, 200, 30, text=button_text, font=p.font.SysFont(gui_font, gui_font_size),
-                        inactiveColour=use_color, hoverColour=p.Color(hover), shadowDistance=-3, shadowColour=p.Color(shadow), radius=5)
+                           inactiveColour=use_color, hoverColour=p.Color(hover), shadowDistance=-3, shadowColour=p.Color(shadow), radius=5)
         return button
-    
+
     def draw_text(self, screen, text, title=False):
         """
         Draw and render text on screen.
@@ -57,18 +58,17 @@ class GUI:
         background_color = gui_draw_text['BACKGROUND_COLOR']
         color = gui_draw_text['COLOR']
         gui_font = gui_draw_text['GUI_FONT']
-        font_size = gui_draw_text['FONT_SIZE']
 
         if not title:
             font = p.font.SysFont(game_font, font_size, True, True)
             text_object = font.render(text, False, p.Color(three_d_color))
             text_location = p.Rect(0, 0, board_with, board_height).move(board_with / 2 - text_object.get_width() / 2,
-            board_height / 2 - text_object.get_height() / 2)
+                                                                        board_height / 2 - text_object.get_height() / 2)
 
             text_width = text_object.get_size()[0]
             text_height = text_object.get_size()[1]
             console_rectangle = p.Rect((board_with - text_width) / 2, (board_height - text_object.get_height()) / 2,
-            text_width + 5, text_height + 5)  # make rectangle
+                                       text_width + 5, text_height + 5)  # make rectangle
             p.draw.rect(screen, p.Color(background_color), console_rectangle)  # draw it
 
             screen.blit(text_object, text_location)
@@ -78,7 +78,7 @@ class GUI:
             font = p.font.SysFont(gui_font, font_size, True, True)
             text_object = font.render(text, False, p.Color(three_d_color))
             text_location = p.Rect(0, 0, board_with, board_height).move(board_with / 2 - text_object.get_width() / 2,
-            board_height / 2 - 150 - text_object.get_height() / 2)
+                                                                        board_height / 2 - 150 - text_object.get_height() / 2)
             screen.blit(text_object, text_location)
             text_object = font.render(text, False, p.Color(color))
             screen.blit(text_object, text_location.move(5, 2))  # 3D effect
@@ -109,8 +109,9 @@ class GUI:
                 p.display.update()
             except KeyboardInterrupt:
                 sys.exit()
-    
-    def get_color(self, color, settings, sound_choices):
+
+    @staticmethod
+    def get_color(color, settings, sound_choices):
         """
         Method for creating color for sound settings buttons. Active setting will be in different color than the rest of buttons.
         :param color:
@@ -195,7 +196,8 @@ class GUI:
         buttons.extend([new_game, volume, exit_game])
         self.draw_state(screen, self.name, buttons)
 
-    def start_game(self, settings, difficulty, play_as):
+    @staticmethod
+    def start_game(settings, difficulty, play_as):
         settings['PIECE_COLOR'] = play_as
         settings['DIFFICULTY'] = difficulty
         Json.write_to_json(json_data)
@@ -220,8 +222,8 @@ class GUI:
         black = self.draw_button(screen, self.board_width, self.board_height // 2, black)
         back = self.draw_button(screen, self.board_width, self.board_height // 2 + 80, back)
 
-        white.onRelease = lambda: self.start_game(self.settings, difficulty, self.write)
-        black.onRelease = lambda: self.start_game(self.settings, difficulty, self.character)
+        white.onRelease = lambda: self.start_game(self.settings, difficulty, self.white)
+        black.onRelease = lambda: self.start_game(self.settings, difficulty, self.black)
         back.onRelease = lambda: self.new_game_menu(screen)
 
         buttons = []
