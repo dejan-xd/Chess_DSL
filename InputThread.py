@@ -21,6 +21,7 @@ class InputThread(threading.Thread):
         self.file = "settings.json"
         self.json_parser = JsonParser(self.file)
         self.information = {}
+        self.select_square = False
 
     def input_notation(self, coordination):
         """
@@ -39,6 +40,10 @@ class InputThread(threading.Thread):
 
     def add_to_information_dict(self, text, color):
         """
+        Method for adding into dictionary where key is text and value is color. This method is used for text outputs into console.
+        :param text:
+        :param color:
+        :return:
         """
         key = len(self.information)
         self.information[key] = [text, color]
@@ -106,6 +111,7 @@ class InputThread(threading.Thread):
         piece = Utils().piece_name(game_state, chess_model.commands[0].piece)
         input_split = self.input_command.split(' ')
         self.disambiguating_moves = False
+        self.select_square = False
         nbr_of_multi_moves = 0
 
         # if user input is in form of "piece move to" (pawn e4)
@@ -133,6 +139,7 @@ class InputThread(threading.Thread):
             # in case user wants only to select the piece
             if game_state.board[self.move_to[0]][self.move_to[1]] == piece:
                 self.move_from = self.move_to
+                self.select_square = True
 
         # if user input is in form of "piece move from move to" (rock a1 a5)
         elif len(input_split) == 3:
@@ -192,15 +199,15 @@ class InputThread(threading.Thread):
             except TypeError:
                 if self.move_to is None:
                     print(colored(">>> TypeError: an invalid reference was made!", "red"))
-                    self.add_to_information_dict("TypeError: an invalid reference was made! -- " + ChessMain.ChessMain().user_text.lower(), "brown1")
+                    self.add_to_information_dict("TypeError: an invalid reference was made! -- " + self.input_command.lower(), "brown1")
                 else:
                     print(colored(">>> Info: That move is not in the list of valid moves.", "yellow"))
                     self.add_to_information_dict(">>> Info: That move is not in the list of valid moves.", "gold")
 
             except AttributeError:
                 print(colored(">>> AttributeError: invalid attribute!", "red"))
-                self.add_to_information_dict("AttributeError: invalid attribute! -- " + ChessMain.ChessMain().user_text.lower(), "brown1")
+                self.add_to_information_dict("AttributeError: invalid attribute! -- " + self.input_command.lower(), "brown1")
 
             except TextXError:
                 print(colored(">>> textXError: error while parsing string!", "red"))
-                self.add_to_information_dict("textXError: error while parsing input! -- " + ChessMain.ChessMain().user_text.lower(), "brown1")
+                self.add_to_information_dict("textXError: error while parsing input! -- " + self.input_command.lower(), "brown1")
