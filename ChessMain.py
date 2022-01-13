@@ -25,6 +25,9 @@ class ChessMain:
         self.game_state = game_state
         self.valid_moves = self.game_state.get_valid_moves()
         self.it = InputThread()  # user inputs
+        self.player_turn = None
+        self.notation_scroll_y = self.notation_text_height = 0  # for scrolling notation text
+        self.console_scroll_y = self.console_text_height = 0  # for scrolling console text
 
     def load_images(self):
         """
@@ -108,12 +111,18 @@ class ChessMain:
         
         text_y = 5
         for i in range(len(self.it.information)):
+            text_position = self.console_scroll_y + text_y
+
+            if text_position < 5:  # first row
+                text_position = -1000  # remove from screen
 
             text_object = font.render(self.it.information[i][0], True, p.Color(self.it.information[i][1]))
-            text_location = move_information_rectangle.move(5, text_y)
+            text_location = move_information_rectangle.move(5, text_position)
             screen.blit(text_object, text_location)
 
-            text_y += text_object.get_height() + 5  # draw text one under another
+            text_y += 15 + 5  # draw text one under another
+
+        self.console_text_height = text_y
 
     def draw_console(self, screen, font):
         """
@@ -184,8 +193,7 @@ class ChessMain:
             if self.game_state.moveLog[i].notation is None:
                 self.game_state.moveLog[i].notation = str(self.game_state.moveLog[i])
 
-    @staticmethod
-    def draw_text_move_log_panel(screen, move_log_panel, move_log_rectangle, font, notation_text):
+    def draw_text_move_log_panel(self, screen, move_log_panel, move_log_rectangle, font, notation_text):
         """
         Method for drawing notation list on move log panel. Also contains logic for creating scroll up/down feature.
         :param screen:
@@ -204,7 +212,12 @@ class ChessMain:
 
         for i in range(len(notation_text)):
             parts = notation_text[i].split("\t")  # split by tab
-            text_position = TEXT_Y
+            text_position = TEXT_Y + self.notation_scroll_y
+
+            if text_position < TEXT_POSITIONING['TEXT_HEIGHT_PADDING']:  # first row
+                text_position = -1000  # remove from screen
+            elif text_position > self.json_parser.get_by_key('BOARD_HEIGHT') - TEXT_POSITIONING['TEXT_HEIGHT_PADDING']:  # last row
+                text_position = 1000  # remove from screen
 
             text_object = font.render(parts[0], True, p.Color(FONT_COLOR))  # white column
             text_location = move_log_rectangle.move(WHITE_WIDTH_PADDING, text_position)
@@ -215,6 +228,8 @@ class ChessMain:
             screen.blit(text_object, text_location)
 
             TEXT_Y += text_object.get_height() + LINE_SPACING  # draw text one under another
+
+        self.notation_text_height = TEXT_Y
 
     def draw_move_log(self, screen, font, settings):
         """
@@ -531,6 +546,40 @@ class ChessMain:
             ai = ChessAI.ChessAI().find_random_move(self.valid_moves)
         game_state.make_move(ai)
 
+    @staticmethod
+    def scroll(event, scroll_y, scroll_panel_height, text_height):
+        """
+        Method for scrolling notation and move information text in panels.
+        :param event:
+        :param scroll_y:
+        :param scroll_panel_height:
+        :param text_height:
+        :return:
+        """
+        if event.button == 4:
+            scroll_y = min(scroll_y + 20, 0)
+
+        elif event.button == 5:
+            if text_height > scroll_panel_height:
+                while not scroll_panel_height % 20 == 0:
+                    scroll_panel_height += 1
+                scroll_y = max(scroll_y - 20, scroll_panel_height)
+
+        return scroll_y
+
+    def move_console_text(self):
+        """
+        Method for moving console text once enter is pressed.
+        :return:
+        """
+        scroll_panel_height_notation = self.json_parser.get_by_key('BOARD_HEIGHT') - self.notation_text_height
+        if self.player_turn and scroll_panel_height_notation < 50:
+            self.notation_scroll_y -= 20
+
+        scroll_panel_height_console = self.json_parser.get_by_key('MOVE_INFORMATION_HEIGHT') - self.console_text_height
+        if self.player_turn and scroll_panel_height_console < 20:
+            self.console_scroll_y -= 20
+
     def game(self, settings):
         """
         The main driver for the code. This will handle user input and update the graphics.
@@ -546,14 +595,17 @@ class ChessMain:
 
         self.load_images()  # do this only once, before the while loop
 
+        move_log_rectangle = self.create_move_log_rectangle()  # get notation rectangle
+        move_information_rectangle = self.create_move_information_rectangle()  # get console information rectangle
+
         move_log_font = p.font.SysFont(self.json_parser.get_by_key('MOVE_LOG_FONT', 'FONT'), self.json_parser.get_by_key('MOVE_LOG_FONT', 'SIZE'), False, False)
 
         if settings['PIECE_COLOR'] == "w":
             self.game_state.player_one = True
-            player_turn = True
+            self.player_turn = True
         elif settings['PIECE_COLOR'] == "b":
             self.game_state.player_two = True
-            player_turn = False
+            self.player_turn = False
 
         move_made = animate = False  # flags
 
@@ -569,6 +621,15 @@ class ChessMain:
                     p.quit()
                     sys.exit()
 
+                elif event.type == p.MOUSEBUTTONDOWN:
+                    if move_log_rectangle.collidepoint(p.mouse.get_pos()):
+                        scroll_panel_height = self.json_parser.get_by_key('BOARD_HEIGHT') - self.notation_text_height - 100
+                        self.notation_scroll_y = self.scroll(event, self.notation_scroll_y, scroll_panel_height, self.notation_text_height)
+
+                    elif move_information_rectangle.collidepoint(p.mouse.get_pos()):
+                        scroll_panel_height = self.json_parser.get_by_key('MOVE_INFORMATION_HEIGHT') - self.console_text_height - 50
+                        self.console_scroll_y = self.scroll(event, self.console_scroll_y, scroll_panel_height, self.console_text_height)
+
                 elif event.type == p.KEYDOWN:
                     if event.key == p.K_BACKSPACE:
                         self.user_text = self.user_text[:-1]
@@ -582,21 +643,23 @@ class ChessMain:
                         if self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'UNDO') and not self.game_state.game_over:
                             self.game_state.undo_move()
                             self.game_state.undo_move()
-                            move_made = True
-                            animate = False
+                            move_made = animate = False
                             self.it.input_command = self.it.move_from = self.it.move_to = None
+                            self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves
 
                         if self.user_text == 'exit':
                             sys.exit()
 
                         self.user_text = ""
+                        if not self.it.select_square:
+                            self.move_console_text()
 
                     else:
                         if len(self.user_text) != 50:
                             self.user_text += event.unicode
 
             # AI move logic
-            if not game_state.game_over and not player_turn:
+            if not game_state.game_over and not self.player_turn:
                 self.ai_move_logic()
                 move_made = animate = True
 
@@ -606,7 +669,7 @@ class ChessMain:
                 if animate:
                     self.move_animation(self.game_state.moveLog[-1], screen, self.game_state.board, clock, settings)
                 move_made = animate = False
-                player_turn = not player_turn
+                self.player_turn = not self.player_turn
                 self.it.input_command = self.it.move_from = self.it.move_to = None
 
                 self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves
