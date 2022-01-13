@@ -9,7 +9,7 @@ Dejan Jovanovic - R2 45/2020
 Domain-Specific Languages DSL, FTN 2021
 """
 
-import GUI
+from GUI import GUI
 import Json
 import pygame as p
 from JsonParser import JsonParser
@@ -33,7 +33,8 @@ def init():
     screen.fill((json_data['BACKGROUND_COLOR']['RED'], json_data['BACKGROUND_COLOR']['GREEN'], json_data['BACKGROUND_COLOR']['BLUE']))
     p.display.flip()
 
-    GUI.main_menu(screen)
+    gui = GUI()
+    gui.main_menu(screen)
 
 
 if __name__ == "__main__":

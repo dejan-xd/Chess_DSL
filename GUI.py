@@ -13,7 +13,8 @@ json_data = Json.read_from_json()
 
 class GUI:
     def __init__(self):
-        self.json_parser = JsonParser(self.file)
+        self.file_settings = "settings.json"
+        self.json_parser = JsonParser(self.file_settings)
         self.color = p.Color(self.json_parser.get_by_key('COLORS', 'INITIAL'))
         self.write = "w"
         self.character = "b"
