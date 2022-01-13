@@ -22,11 +22,11 @@ class GameState:
         '--' - represents an empty space on the board with no piece.
         """
         self.board = [
-            ["--", "--", "--", "--", "bK", "--", "--", "--"],
+            ["bK", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["wN", "--", "--", "--", "--", "bp", "--", "wQ"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["wN", "--", "wN", "--", "--", "wQ", "--", "wQ"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "--", "--", "--", "wK", "--", "--", "wR"]]
@@ -38,6 +38,7 @@ class GameState:
         self.game_over = False
         self.checkMate = False
         self.staleMate = False
+        self.multiple_moves = False
 
         self.player_one = False  # play as white
         self.player_two = False  # play as black

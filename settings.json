@@ -326,5 +326,9 @@
       "UNDO_PRINT": "Rien à annuler.",
       "CASTLE_PRINT": "Roque déjà utilisé."
     }
+  },
+  "CHESS_NOTATION": {
+    "CHECKMATE": "#",
+    "CHECK": "+"
   }
 }

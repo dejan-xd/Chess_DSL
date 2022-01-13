@@ -18,6 +18,7 @@ class InputThread(threading.Thread):
         self.colsToFiles = {v: k for v, k in Move.Move.filesToCols.items()}
         self.enter = False
         self.disambiguating_moves = False
+        self.disambiguating_moves_list = []
         self.file = "settings.json"
         self.json_parser = JsonParser(self.file)
         self.information = {}
@@ -147,6 +148,20 @@ class InputThread(threading.Thread):
             self.move_to = chess_model.commands[0].move_to.col + str(chess_model.commands[0].move_to.row)
             self.move_from = tuple(map(int, self.input_notation(self.move_from)))
             self.move_to = tuple(map(int, self.input_notation(self.move_to)))
+            self.disambiguating_moves_list = []
+
+            for row in range(8):
+                for col in range(8):
+                    if game_state.board[row][col] == piece:
+                        move = Move.Move((row, col), self.move_to, game_state.board)
+                        for i in range(len(valid_moves)):
+                            if move == valid_moves[i]:
+                                nbr_of_multi_moves += 1
+                                self.disambiguating_moves_list.append((row, col))
+                                break
+
+            if nbr_of_multi_moves > 1:
+                game_state.multiple_moves = True
 
         else:
             return

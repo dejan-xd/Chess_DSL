@@ -196,6 +196,41 @@ class ChessMain:
             if self.game_state.moveLog[i].notation is None:
                 self.game_state.moveLog[i].notation = str(self.game_state.moveLog[i])
 
+        if self.game_state.multiple_moves:
+            self.disambiguating_moves_notations()
+
+        if self.game_state.checkMate:
+            self.game_state.moveLog[-1].notation = str(self.game_state.moveLog[-1].notation) + self.json_parser.get_by_key('CHESS_NOTATION', 'CHECKMATE')
+
+        elif self.game_state.in_check():
+            self.game_state.moveLog[-1].notation = str(self.game_state.moveLog[-1].notation) + self.json_parser.get_by_key('CHESS_NOTATION', 'CHECK')
+
+    def disambiguating_moves_notations(self):
+        """
+        Function for creating notations if there is disambiguating moves. Disambiguating moves happens when two (or more) identical pieces can move to the same square,
+        the moving piece is uniquely identified by specifying the piece's letter, followed by (in descending order of preference):
+            1. the file of departure (if they differ); or
+            2. the rank of departure (if the files are the same but the ranks differ); or
+            3. both the file and rank of departure (if neither alone is sufficient to identify the piece –
+                which occurs only in rare cases where a player has three or more identical pieces able to reach the same square,
+                as a result of one or more pawns having promoted).
+        :return:
+        """
+        self.game_state.multiple_moves = False
+        start_square = self.game_state.moveLog[-1].colsToFiles[self.game_state.moveLog[-1].startCol] + self.game_state.moveLog[-1].rowsToRanks[self.game_state.moveLog[-1].startRow]
+
+        # disambiguating for two moves
+        if len(self.it.disambiguating_moves_list) == 2:
+            # if row is the same
+            if self.it.disambiguating_moves_list[0][0] == self.it.disambiguating_moves_list[1][0]:
+                self.game_state.moveLog[-1].notation = str(self.game_state.moveLog[-1])[:1] + start_square[0] + str(self.game_state.moveLog[-1])[1:]
+            # if column is the same
+            if self.it.disambiguating_moves_list[0][1] == self.it.disambiguating_moves_list[1][1]:
+                self.game_state.moveLog[-1].notation = str(self.game_state.moveLog[-1])[:1] + start_square[1] + str(self.game_state.moveLog[-1])[1:]
+        # disambiguating for three moves (three pawn promotions)
+        if len(self.it.disambiguating_moves_list) == 3:
+            self.game_state.moveLog[-1].notation = str(self.game_state.moveLog[-1])[:1] + start_square + str(self.game_state.moveLog[-1])[1:]
+
     def draw_text_move_log_panel(self, screen, move_log_panel, move_log_rectangle, font, notation_text):
         """
         Method for drawing notation list on move log panel. Also contains logic for creating scroll up/down feature.
