@@ -22,11 +22,11 @@ class GameState:
         '--' - represents an empty space on the board with no piece.
         """
         self.board = [
-            ["bK", "--", "--", "--", "--", "--", "--", "--"],
+            ["bR", "--", "--", "--", "bK", "--", "--", "bR"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["wN", "--", "--", "--", "--", "bp", "--", "wQ"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["wN", "--", "wN", "--", "--", "wQ", "--", "wQ"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "--", "--", "--", "wK", "--", "--", "wR"]]
@@ -42,6 +42,7 @@ class GameState:
 
         self.player_one = False  # play as white
         self.player_two = False  # play as black
+        self.player_turn = None
 
         self.moveLog = []
 
@@ -55,6 +56,7 @@ class GameState:
         self.whiteKingCastleLocationQueenSide = (7, 2)
         self.blackKingCastleLocationKingSide = (0, 6)
         self.blackKingCastleLocationQueenSide = (0, 2)
+        self.castleUsed = False
         self.currentCastlingRights = CastleRights.CastleRights(True, True, True, True)
         # store castle rights in the log and keep track of changes and update the log if needed
         self.castleRightsLog = [CastleRights.CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,
@@ -105,6 +107,9 @@ class GameState:
             else:  # queen side castle move
                 self.board[move.endRow][move.endCol + 1] = self.board[move.endRow][move.endCol - 2]  # move the rock
                 self.board[move.endRow][move.endCol - 2] = '--'  # erase old rock
+            
+            if self.player_turn:
+                self.castleUsed = True
 
         # update en passant log
         self.enpassantPossibleLog.append(self.enpassantPossible)
@@ -155,6 +160,9 @@ class GameState:
                 else:  # queen side
                     self.board[move.endRow][move.endCol - 2] = self.board[move.endRow][move.endCol + 1]
                     self.board[move.endRow][move.endCol + 1] = '--'
+                            
+                if self.player_turn:
+                    self.castleUsed = False
 
     def get_all_possible_moves(self):
         """
