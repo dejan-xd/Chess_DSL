@@ -8,6 +8,7 @@ import GameState
 import Move
 from JsonParser import JsonParser
 import ChessAI
+import GUI
 
 game_state = GameState.GameState()
 
@@ -199,11 +200,11 @@ class ChessMain:
         if self.game_state.multiple_moves:
             self.disambiguating_moves_notations()
 
-        if self.game_state.checkMate:
-            self.game_state.moveLog[-1].notation = str(self.game_state.moveLog[-1].notation) + self.json_parser.get_by_key('CHESS_NOTATION', 'CHECKMATE')
-
-        elif self.game_state.in_check():
+        if (self.game_state.in_check() and not self.game_state.checkMate) and self.game_state.moveLog[-1].notation[-1] != self.json_parser.get_by_key('CHESS_NOTATION', 'CHECK'):
             self.game_state.moveLog[-1].notation = str(self.game_state.moveLog[-1].notation) + self.json_parser.get_by_key('CHESS_NOTATION', 'CHECK')
+
+        elif self.game_state.checkMate and self.game_state.moveLog[-1].notation[-1] != self.json_parser.get_by_key('CHESS_NOTATION', 'CHECKMATE'):
+            self.game_state.moveLog[-1].notation = str(self.game_state.moveLog[-1].notation) + self.json_parser.get_by_key('CHESS_NOTATION', 'CHECKMATE')
 
     def disambiguating_moves_notations(self):
         """
@@ -211,7 +212,7 @@ class ChessMain:
         the moving piece is uniquely identified by specifying the piece's letter, followed by (in descending order of preference):
             1. the file of departure (if they differ); or
             2. the rank of departure (if the files are the same but the ranks differ); or
-            3. both the file and rank of departure (if neither alone is sufficient to identify the piece –
+            3. both the file and rank of departure (if neither alone is sufficient to identify the piece, 
                 which occurs only in rare cases where a player has three or more identical pieces able to reach the same square,
                 as a result of one or more pawns having promoted).
         :return:
@@ -653,7 +654,12 @@ class ChessMain:
             for board in self.game_state.board:
                 current_board += ''.join(map(str, board))
 
-            if current_board in self.threefold_list:  # if current board happened
+            # add castling rights to the current board state
+            current_board += str(self.game_state.currentCastlingRights.wks) + str(self.game_state.currentCastlingRights.wqs) + \
+                str(self.game_state.currentCastlingRights.bks) + str(self.game_state.currentCastlingRights.bqs)
+
+            # if current board state happened
+            if current_board in self.threefold_list:
                 if self.game_state.whiteToMove:
                     self.black_threefold_counter += 1
                 else:
@@ -661,8 +667,11 @@ class ChessMain:
             else:
                 self.threefold_list.append(current_board)
 
-            move = self.game_state.moveLog[-1]  # take last move from move log
-            if move.pieceMoved[1] != 'p':  # check for fifty move draw rule
+            # take last move from move log
+            move = self.game_state.moveLog[-1]
+
+            # check for fifty move draw rule
+            if move.pieceMoved[1] != 'p':
                 if move.pieceCaptured == '--':
                     self.fifty_move_rule_counter += 1
                 else:
@@ -671,6 +680,33 @@ class ChessMain:
                 self.fifty_move_rule_counter = 0
 
             self.counter_list_storage.append([self.white_threefold_counter, self.black_threefold_counter, self.fifty_move_rule_counter])
+
+    def draw_text_on_screen(self, screen):
+        """
+        Draw end game text on the screen (checkmate, stalemate, three fold rule, fifty move rule).
+        :param screen:
+        :return:
+        """
+        text = None
+
+        # draw text if checkmate or stalemate
+        if self.game_state.checkMate:
+            text = self.json_parser.get_by_key('DRAW_TEXT', 'BLACK_CHECKMATE') if self.game_state.whiteToMove else self.json_parser.get_by_key('DRAW_TEXT', 'WHITE_CHECKMATE')
+
+        elif self.game_state.staleMate:
+            text = self.json_parser.get_by_key('DRAW_TEXT', 'STALEMATE')
+
+        # check if it is threefold rule
+        elif self.white_threefold_counter > 2 or self.black_threefold_counter > 2:
+            text = self.json_parser.get_by_key('DRAW_TEXT', 'THREEFOLD_RULE')
+
+        # check for fifty move rule
+        elif self.fifty_move_rule_counter > 100:
+            text = self.json_parser.get_by_key('DRAW_TEXT', 'FIFTY_MOVE_RULE')
+
+        if text is not None:
+            self.game_state.game_over = True
+            GUI.GUI().draw_text(screen, text)
 
     def game(self, settings):
         """
@@ -703,6 +739,7 @@ class ChessMain:
 
         while True:
             self.draw_game_state(screen, move_log_font, settings)
+            self.draw_text_on_screen(screen)
             clock.tick(self.json_parser.get_by_key('MAX_FPS'))  # refresh screen frame rate
             p.display.flip()  # draw the game
 

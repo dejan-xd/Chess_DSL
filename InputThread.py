@@ -193,8 +193,8 @@ class InputThread(threading.Thread):
         chess_mm = metamodel_from_file('textX/chess_rules.tx', ignore_case=True)
         while True:
             try:
-                game_state = ChessMain.ChessMain().game_state
                 if self.enter:
+                    game_state = ChessMain.ChessMain().game_state
                     self.move_from = self.move_to = None
                     self.enter = False
 
