@@ -330,5 +330,12 @@
   "CHESS_NOTATION": {
     "CHECKMATE": "#",
     "CHECK": "+"
+  },
+  "DRAW_TEXT": {
+    "STALEMATE": "Stalemate",
+    "WHITE_CHECKMATE": "White wins by checkmate!",
+    "BLACK_CHECKMATE": "Black wins by checkmate!",
+    "THREEFOLD_RULE": "Threefold repetition draw.",
+    "FIFTY_MOVE_RULE": "Fifty-move rule draw."
   }
 }
