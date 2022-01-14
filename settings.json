@@ -122,7 +122,7 @@
   },
   "SETTINGS": {
     "PIECE_COLOR": "w",
-    "DIFFICULTY": 0,
+    "DIFFICULTY": 2,
     "SOUND": "Loud",
     "WHITE_WINS": 0.0,
     "BLACK_WINS": 0.0

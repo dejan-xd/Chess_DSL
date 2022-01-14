@@ -197,13 +197,13 @@ class GUI:
         self.draw_state(screen, self.name, buttons)
 
     @staticmethod
-    def start_game(settings, difficulty, play_as):
-        settings['PIECE_COLOR'] = play_as
-        settings['DIFFICULTY'] = difficulty
+    def start_game(difficulty, play_as):
+        json_data['SETTINGS']['PIECE_COLOR'] = play_as
+        json_data['SETTINGS']['DIFFICULTY'] = difficulty
         Json.write_to_json(json_data)
 
         chess_main = ChessMain()
-        chess_main.game(settings)
+        chess_main.game(json_data['SETTINGS'])
 
     def white_or_black_menu(self, screen, difficulty):
         """
@@ -216,14 +216,14 @@ class GUI:
         black_white = self.json_parser.get_by_key('BLACK_WHITE')
         white = button_names['WHITE']
         black = button_names['BLACK']
-        back = json_data['BACK']
+        back = self.json_parser.get_by_key('BACK')
 
         white = self.draw_button(screen, self.board_width, self.board_height // 2 - 40, white)
         black = self.draw_button(screen, self.board_width, self.board_height // 2, black)
         back = self.draw_button(screen, self.board_width, self.board_height // 2 + 80, back)
 
-        white.onRelease = lambda: self.start_game(self.settings, difficulty, self.white)
-        black.onRelease = lambda: self.start_game(self.settings, difficulty, self.black)
+        white.onRelease = lambda: self.start_game(difficulty, self.white)
+        black.onRelease = lambda: self.start_game(difficulty, self.black)
         back.onRelease = lambda: self.new_game_menu(screen)
 
         buttons = []
