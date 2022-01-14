@@ -88,7 +88,7 @@ class InputThread(threading.Thread):
                 self.print_text(pr_command, self.input_command + "' - " + undo_print, "gold")
 
         elif game_command == 'castling short' or game_command == 'castling long':
-            if castle_used_print is None:
+            if not game_state.castleUsed:
                 self.print_text(pr_command, self.input_command, "dodgerblue")
             else:
                 self.print_text(pr_command, castle_used_print, "gold")

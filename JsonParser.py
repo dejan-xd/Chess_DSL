@@ -10,12 +10,13 @@ class JsonParser:
         self.read = "r"
         self.write = "w"
         self.utf = "utf8"
-        self.read_json()
+        self.data = self.read_json()
 
     def read_json(self):
         json_file = open(self.file, self.read, encoding=self.utf)
-        self.data = json.loads(json_file.read())
+        data = json.loads(json_file.read())
         json_file.close()
+        return data
 
     def get_by_key(self, key1, key2=None, key3=None):
         if key2 is None:

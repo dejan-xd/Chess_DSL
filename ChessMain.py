@@ -26,7 +26,6 @@ class ChessMain:
         self.game_state = game_state
         self.valid_moves = self.game_state.get_valid_moves()
         self.it = InputThread()  # user inputs
-        self.player_turn = None
         self.notation_scroll_y = self.notation_text_height = 0  # for scrolling notation text
         self.console_scroll_y = self.console_text_height = 0  # for scrolling console text
         self.white_threefold_counter = self.black_threefold_counter = self.fifty_move_rule_counter = 0  # counter for threefold moves and fifty move draw rule
@@ -411,6 +410,7 @@ class ChessMain:
         Checking if the move was castling move first. If not return move_from and move_to so the move can be made.
         :return:
         """
+        is_castle = False
         if self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'CASTLE_SHORT'):
             if self.game_state.whiteToMove:
                 move_from = self.game_state.whiteKingLocation  # (7, 4)
@@ -418,6 +418,7 @@ class ChessMain:
             else:
                 move_from = self.game_state.blackKingLocation  # (0, 4)
                 move_to = self.game_state.blackKingCastleLocationKingSide  # (0, 6)
+            is_castle = True
 
         elif self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'CASTLE_LONG'):
             if self.game_state.whiteToMove:
@@ -426,28 +427,28 @@ class ChessMain:
             else:
                 move_from = self.game_state.blackKingLocation  # (0, 4)
                 move_to = self.game_state.blackKingCastleLocationQueenSide  # (0, 2)
+            is_castle = True
 
         else:
             move_from = self.it.move_from  # if it's any other move
             move_to = self.it.move_to
 
-        return move_from, move_to
+        return move_from, move_to, is_castle
 
-    def move_logic(self, move_made, animate, human_turn):
+    def move_logic(self, move_made, animate):
         """
         Logic for pasting/reading the move from game console and executing player's move.
 
         :param move_made:
         :param animate:
-        :param human_turn:
         :return:
         """
         self.it.enter = True
         self.it.input_command = "print('" + self.user_text.lower() + "')"
         time.sleep(0.1)  # wait for another thread to get all information
 
-        if not self.game_state.game_over and human_turn:
-            move_from, move_to = self.get_move()
+        if not self.game_state.game_over and self.game_state.player_turn:
+            move_from, move_to, is_castle = self.get_move()
 
             if move_from is not None and move_to is not None:
                 move = Move.Move(move_from, move_to, self.game_state.board)
@@ -455,6 +456,10 @@ class ChessMain:
                     if move == self.valid_moves[i]:
                         self.game_state.make_move(self.valid_moves[i])
                         move_made = animate = True
+
+                if not move_made and is_castle:
+                    key = len(self.it.information) - 1
+                    self.it.information[key] = [self.it.information[key][0] + " >>> ERROR", "brown1"]
 
         return move_made, animate
 
@@ -612,11 +617,11 @@ class ChessMain:
         :return:
         """
         scroll_panel_height_notation = self.json_parser.get_by_key('BOARD_HEIGHT') - self.notation_text_height
-        if self.player_turn and scroll_panel_height_notation < 50:
+        if self.game_state.player_turn and scroll_panel_height_notation < 50:
             self.notation_scroll_y -= 20
 
         scroll_panel_height_console = self.json_parser.get_by_key('MOVE_INFORMATION_HEIGHT') - self.console_text_height
-        if self.player_turn and scroll_panel_height_console < 20:
+        if self.game_state.player_turn and scroll_panel_height_console < 20:
             self.console_scroll_y -= 20
 
     def undo_logic(self):
@@ -730,10 +735,10 @@ class ChessMain:
 
         if settings['PIECE_COLOR'] == "w":
             self.game_state.player_one = True
-            self.player_turn = True
+            self.game_state.player_turn = True
         elif settings['PIECE_COLOR'] == "b":
             self.game_state.player_two = True
-            self.player_turn = False
+            self.game_state.player_turn = False
 
         move_made = animate = undo = False  # flags
 
@@ -742,8 +747,6 @@ class ChessMain:
             self.draw_text_on_screen(screen)
             clock.tick(self.json_parser.get_by_key('MAX_FPS'))  # refresh screen frame rate
             p.display.flip()  # draw the game
-
-            human_turn = self.game_state.is_human_turn()
 
             for event in p.event.get():
                 if event.type == p.QUIT:  # command to exit the game
@@ -767,7 +770,7 @@ class ChessMain:
                         self.user_text = Tk().clipboard_get()
 
                     elif event.key == p.K_RETURN:
-                        move_made, animate = self.move_logic(move_made, animate, human_turn)  # move logic
+                        move_made, animate = self.move_logic(move_made, animate)  # move logic
 
                         if self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'UNDO') and not self.game_state.game_over:
                             self.undo_logic()
@@ -787,7 +790,7 @@ class ChessMain:
                             self.user_text += event.unicode
 
             # AI move logic
-            if not game_state.game_over and not self.player_turn:
+            if not game_state.game_over and not self.game_state.player_turn:
                 self.ai_move_logic()
                 move_made = animate = True
 
@@ -799,7 +802,7 @@ class ChessMain:
 
                 self.move_made_logic(undo)
                 move_made = animate = undo = False
-                self.player_turn = not self.player_turn
+                self.game_state.player_turn = not self.game_state.player_turn
                 self.it.input_command = self.it.move_from = self.it.move_to = None
 
                 self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves
