@@ -23,6 +23,13 @@ class InputThread(threading.Thread):
         self.json_parser = JsonParser(self.file)
         self.information = {}
         self.select_square = False
+        self.stop_event = threading.Event()
+
+    def stop(self):
+        self.stop_event.set()
+
+    def stopped(self):
+        return self.stop_event.is_set()
 
     def input_notation(self, coordination):
         """
@@ -129,7 +136,6 @@ class InputThread(threading.Thread):
                             if move == valid_moves[i]:
                                 self.move_from = (row, col)
                                 nbr_of_multi_moves += 1
-                                # TODO multiple moves chess notation
                                 break
 
             # in case multiple same pieces can go to that square
@@ -164,6 +170,7 @@ class InputThread(threading.Thread):
                 game_state.multiple_moves = True
 
         else:
+            self.add_to_information_dict("textXError: error while parsing input! -- " + self.input_command.lower(), "brown1")
             return
 
         if not self.disambiguating_moves:

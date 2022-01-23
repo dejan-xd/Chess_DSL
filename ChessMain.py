@@ -31,6 +31,8 @@ class ChessMain:
         self.white_threefold_counter = self.black_threefold_counter = self.fifty_move_rule_counter = 0  # counter for threefold moves and fifty move draw rule
         self.counter_list_storage = []  # store all counters in list
         self.threefold_list = []  # keep track of all moves so we can check if threefold happened
+        self.user_text_history = []
+        self.thread_running = False
 
     def load_images(self):
         """
@@ -500,11 +502,11 @@ class ChessMain:
         :return:
         """
         scroll_panel_height_notation = self.json_parser.get_by_key('BOARD_HEIGHT') - self.notation_text_height
-        if self.game_state.player_turn and scroll_panel_height_notation < 50:
+        if scroll_panel_height_notation < 50:
             self.notation_scroll_y -= 20
 
         scroll_panel_height_console = self.json_parser.get_by_key('MOVE_INFORMATION_HEIGHT') - self.console_text_height
-        if self.game_state.player_turn and scroll_panel_height_console < 20:
+        if scroll_panel_height_console < 20:
             self.console_scroll_y -= 20
 
     def undo_logic(self):
@@ -530,6 +532,46 @@ class ChessMain:
             self.threefold_list.clear()
             self.counter_list_storage.clear()
             self.white_threefold_counter = self.black_threefold_counter = self.fifty_move_rule_counter = 0  # restart counter values
+
+    def restart_logic(self, settings):
+        """
+        Method for restarting the game.
+        :param settings:
+        :return:
+        """
+        global game_state
+        game_state = GameState.GameState()  # make new game_state
+        self.game_state = game_state
+        self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves
+        self.it.input_command = self.it.move_from = self.it.move_to = None  # restart console inputs
+
+        self.user_text_history.append(self.user_text)
+        self.user_text = ""
+        self.white_threefold_counter = self.black_threefold_counter = self.fifty_move_rule_counter = 0  # counter for threefold moves and fifty move draw rule
+        self.counter_list_storage = []  # store all counters in list
+        self.threefold_list = []  # keep track of all moves so we can check if threefold happened
+        self.game(settings)  # run game method
+
+    def new_game_logic(self, settings):
+        """
+        Logic for starting a new game. If the game is over take a note is was the winner.
+        :param settings:
+        :return:
+        """
+        if self.game_state.game_over:
+            if self.game_state.checkMate:
+                if not self.game_state.whiteToMove:
+                    settings['WHITE_WINS'] = float(settings['WHITE_WINS']) + 1  # white wins
+                else:
+                    settings['BLACK_WINS'] = float(settings['BLACK_WINS']) + 1  # black wins
+            else:
+                settings['WHITE_WINS'] = float(settings['WHITE_WINS']) + 1 / 2  # 1/2 points for white
+                settings['BLACK_WINS'] = float(settings['BLACK_WINS']) + 1 / 2  # 1/2 points for black
+
+            self.json_data['SETTINGS'] = settings
+            Json.write_to_json(self.json_data)
+
+        self.restart_logic(settings)
 
     def move_made_logic(self, undo):
         """
@@ -596,13 +638,35 @@ class ChessMain:
             self.game_state.game_over = True
             GUI.GUI().draw_text(screen, text)
 
+    def user_input_history_up(self, position):
+        if position < len(self.user_text_history):
+            if self.user_text == '':
+                self.user_text = self.user_text_history[-1]
+            else:
+                position += 1
+                self.user_text = self.user_text_history[len(self.user_text_history) - position]
+
+        return position
+
+    def user_input_history_down(self, position):
+        if len(self.user_text_history) >= position > 1:
+            if self.user_text == '':
+                self.user_text = self.user_text_history[-1]
+            else:
+                position -= 1
+
+        self.user_text = self.user_text_history[len(self.user_text_history) - position]
+        return position
+
     def game(self, settings):
         """
         The main driver for the code. This will handle user input and update the graphics.
         :return:
         """
 
-        self.it.start()  # start thread
+        if not self.thread_running:
+            self.thread_running = True
+            self.it.start()  # start thread
 
         clock = p.time.Clock()
         screen = p.display.set_mode((self.json_parser.get_by_key('BOARD_WIDTH') + self.json_parser.get_by_key('MOVE_LOG_PANEL_WIDTH'),
@@ -624,6 +688,8 @@ class ChessMain:
             self.game_state.player_turn = False
 
         move_made = animate = undo = False  # flags
+        select_all = False
+        position = 1
 
         while True:
             self.draw_game_state(screen, move_log_font, settings)
@@ -647,13 +713,32 @@ class ChessMain:
 
                 elif event.type == p.KEYDOWN:
                     if event.key == p.K_BACKSPACE:
-                        self.user_text = self.user_text[:-1]
+                        if select_all:
+                            self.user_text = ''
+                            select_all = False
+                        else:
+                            self.user_text = self.user_text[:-1]
+
+                    elif event.key == p.K_a and p.key.get_mods() & p.KMOD_CTRL:
+                        select_all = True
 
                     elif event.key == p.K_v and p.key.get_mods() & p.KMOD_CTRL:
                         self.user_text = Tk().clipboard_get()
 
+                    elif event.key == p.K_UP:
+                        position = self.user_input_history_up(position)
+
+                    elif event.key == p.K_DOWN and self.user_text != '':
+                        position = self.user_input_history_down(position)
+
                     elif event.key == p.K_RETURN:
+                        if self.user_text == '':
+                            break
+
                         move_made, animate = self.move_logic(move_made, animate)  # move logic
+
+                        if not self.it.select_square:
+                            self.move_console_text()
 
                         if self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'UNDO') and not self.game_state.game_over:
                             self.undo_logic()
@@ -661,12 +746,19 @@ class ChessMain:
                             self.it.input_command = self.it.move_from = self.it.move_to = None
                             self.valid_moves = self.game_state.get_valid_moves()  # generate new valid_moves
 
-                        if self.user_text == 'exit':
+                        elif self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'RESTART'):
+                            self.restart_logic(settings)
+
+                        elif self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'NEW_GAME'):
+                            self.new_game_logic(settings)
+
+                        elif self.it.input_command == self.json_parser.get_by_key('COMMANDS', 'EXIT'):
                             sys.exit()
 
+                        self.user_text_history.append(self.user_text)
                         self.user_text = ""
-                        if not self.it.select_square:
-                            self.move_console_text()
+                        select_all = False
+                        position = 1
 
                     else:
                         if len(self.user_text) != 50:
