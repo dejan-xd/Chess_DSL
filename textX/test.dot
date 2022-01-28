@@ -1,0 +1,42 @@
+
+    digraph textX {
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+    node[
+        shape=record,
+        style=filled,
+        fillcolor=aliceblue
+    ]
+    nodesep = 0.3
+    edge[dir=black,arrowtail=empty]
+
+
+2590448098952 -> 2590448305224 [label="commands:0" arrowtail=diamond dir=both]
+2590448305224 -> 2590448305480 [label="move_to" arrowtail=diamond dir=both]
+2590448305480[label="{:Coordinates|+col:str='e'\l+row:int=4\l}"]
+2590448305224[label="{:MoveCommand|+piece:str='pešak'\l}"]
+2590448098952 -> 2590448305352 [label="commands:1" arrowtail=diamond dir=both]
+2590448305352 -> 2590448305608 [label="move_to" arrowtail=diamond dir=both]
+2590448305608[label="{:Coordinates|+col:str='g'\l+row:int=5\l}"]
+2590448305352[label="{:MoveCommand|+piece:str='bishop'\l}"]
+2590448098952 -> 2590448305416 [label="commands:2" arrowtail=diamond dir=both]
+2590448305416 -> 2590448305736 [label="move_to" arrowtail=diamond dir=both]
+2590448305736[label="{:Coordinates|+col:str='d'\l+row:int=8\l}"]
+2590448305416[label="{:MoveCommand|+piece:str='dame'\l}"]
+2590448098952 -> 2590448305544 [label="commands:3" arrowtail=diamond dir=both]
+2590448305544 -> 2590448305864 [label="move_to" arrowtail=diamond dir=both]
+2590448305864[label="{:Coordinates|+col:str='a'\l+row:int=1\l}"]
+2590448305544 -> 2590448305800 [label="move_from" arrowtail=diamond dir=both]
+2590448305800[label="{:Coordinates|+col:str='d'\l+row:int=1\l}"]
+2590448305544[label="{:MoveCommand|+piece:str='torre'\l}"]
+2590448098952 -> 2590448305672 [label="commands:4" arrowtail=diamond dir=both]
+2590448305672[label="{:HandleCommand|+handler:str='poništi'\l}"]
+2590448098952 -> 2590448306056 [label="commands:5" arrowtail=diamond dir=both]
+2590448306056[label="{:HandleCommand|+handler:str='redémarrage'\l}"]
+2590448098952 -> 2590448305992 [label="commands:6" arrowtail=diamond dir=both]
+2590448305992[label="{:HandleCommand|+handler:str='enroque largo'\l}"]
+2590448098952 -> 2590448306184 [label="commands:7" arrowtail=diamond dir=both]
+2590448306184[label="{:HandleCommand|+handler:str='new game'\l}"]
+2590448098952[label="{:Program|}"]
+
+}

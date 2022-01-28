@@ -22,14 +22,14 @@ class GameState:
         '--' - represents an empty space on the board with no piece.
         """
         self.board = [
-            ["bR", "--", "--", "--", "bK", "--", "--", "bR"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
+            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-            ["wR", "--", "--", "--", "wK", "--", "--", "wR"]]
+            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
 
         self.move_function = {'p': self.get_pawn_moves, 'R': self.get_rock_moves, 'N': self.get_knight_moves,
                               'B': self.get_bishop_moves, 'Q': self.get_queen_moves, 'K': self.get_king_moves}
