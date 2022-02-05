@@ -1,5 +1,5 @@
-from JsonParser import JsonParser
 import random
+from chessdsl.json_parser import JsonParser
 
 
 class ChessAI:

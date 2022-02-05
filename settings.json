@@ -121,11 +121,11 @@
     "BACKGROUND_COLOR": "Peachpuff4"
   },
   "SETTINGS": {
-    "PIECE_COLOR": "w",
-    "DIFFICULTY": 0,
+    "PIECE_COLOR": "b",
+    "DIFFICULTY": 2,
     "SOUND": "Loud",
     "WHITE_WINS": 0.0,
-    "BLACK_WINS": 0.0
+    "BLACK_WINS": 1.0
   },
   "AUDIO": {
     "CHECK": "audio/check.wav",
