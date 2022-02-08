@@ -1,4 +1,4 @@
-from JsonParser import JsonParser
+from chessdsl.json_parser import JsonParser
 
 
 class Utils:

@@ -3,16 +3,16 @@ For creating the GUI view.
 """
 
 import sys
-import Json
 import pygame as p
 import pygame_widgets as pw
-from ChessMain import ChessMain
-from JsonParser import JsonParser
+from chessdsl.json_data import JsonData
+from chessdsl.json_parser import JsonParser
+from chessdsl.chess_main import ChessMain
 
-json_data = Json.read_from_json()
+json_data = JsonData.read_from_json()
 
 
-class GUI:
+class Gui:
     def __init__(self):
         self.file_settings = "settings.json"
         self.json_parser = JsonParser(self.file_settings)
@@ -41,47 +41,28 @@ class GUI:
                            inactiveColour=use_color, hoverColour=p.Color(hover), shadowDistance=-3, shadowColour=p.Color(shadow), radius=5)
         return button
 
-    def draw_text(self, screen, text, title=False):
+    def draw_text(self, screen, text):
         """
         Draw and render text on screen.
         :param screen:
         :param text:
-        :param title:
         :return:
         """
         gui_draw_text = self.json_parser.get_by_key('GUI_DRAW_TEXT')
         board_with = self.json_parser.get_by_key('BOARD_WIDTH')
         board_height = self.json_parser.get_by_key('BOARD_HEIGHT')
-        game_font = gui_draw_text['GAME_FONT']
         font_size = gui_draw_text['FONT_SIZE']
         three_d_color = gui_draw_text['3D_COLOR']
-        background_color = gui_draw_text['BACKGROUND_COLOR']
         color = gui_draw_text['COLOR']
         gui_font = gui_draw_text['GUI_FONT']
 
-        if not title:
-            font = p.font.SysFont(game_font, font_size, True, True)
-            text_object = font.render(text, False, p.Color(three_d_color))
-            text_location = p.Rect(0, 0, board_with, board_height).move(board_with / 2 - text_object.get_width() / 2,
-                                                                        board_height / 2 - text_object.get_height() / 2)
-
-            text_width = text_object.get_size()[0]
-            text_height = text_object.get_size()[1]
-            console_rectangle = p.Rect((board_with - text_width) / 2, (board_height - text_object.get_height()) / 2,
-                                       text_width + 5, text_height + 5)  # make rectangle
-            p.draw.rect(screen, p.Color(background_color), console_rectangle)  # draw it
-
-            screen.blit(text_object, text_location)
-            text_object = font.render(text, False, p.Color(color))
-            screen.blit(text_object, text_location.move(2, 2))  # 3D effect
-        elif title:
-            font = p.font.SysFont(gui_font, font_size, True, True)
-            text_object = font.render(text, False, p.Color(three_d_color))
-            text_location = p.Rect(0, 0, board_with, board_height).move(board_with / 2 - text_object.get_width() / 2,
-                                                                        board_height / 2 - 150 - text_object.get_height() / 2)
-            screen.blit(text_object, text_location)
-            text_object = font.render(text, False, p.Color(color))
-            screen.blit(text_object, text_location.move(5, 2))  # 3D effect
+        font = p.font.SysFont(gui_font, font_size, True, True)
+        text_object = font.render(text, False, p.Color(three_d_color))
+        text_location = p.Rect(0, 0, board_with, board_height).move(board_with / 2 - text_object.get_width() / 2,
+                                                                    board_height / 2 - 150 - text_object.get_height() / 2)
+        screen.blit(text_object, text_location)
+        text_object = font.render(text, False, p.Color(color))
+        screen.blit(text_object, text_location.move(5, 2))  # 3D effect
 
     def draw_state(self, screen, name, buttons):
         """
@@ -102,7 +83,7 @@ class GUI:
                     if event.type == p.QUIT:
                         sys.exit()
                 screen.fill((background_color_red, background_color_green, background_color_blue))
-                self.draw_text(screen, name, True)
+                self.draw_text(screen, name)
                 for button in buttons:
                     button.listen(events)
                     button.draw()
@@ -133,7 +114,8 @@ class GUI:
         :return:
         """
         json_data['SETTINGS']["SOUND"] = text
-        Json.write_to_json(json_data)
+        JsonData.write_to_json(json_data)
+        self.settings = json_data['SETTINGS']
 
         self.sound_menu(screen)
 
@@ -200,7 +182,7 @@ class GUI:
     def start_game(difficulty, play_as):
         json_data['SETTINGS']['PIECE_COLOR'] = play_as
         json_data['SETTINGS']['DIFFICULTY'] = difficulty
-        Json.write_to_json(json_data)
+        JsonData.write_to_json(json_data)
 
         chess_main = ChessMain()
         chess_main.game(json_data['SETTINGS'])

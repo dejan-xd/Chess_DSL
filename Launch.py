@@ -9,10 +9,10 @@ Dejan Jovanovic - R2 45/2020
 Domain-Specific Languages DSL, FTN 2021
 """
 
-from GUI import GUI
-import Json
 import pygame as p
-from JsonParser import JsonParser
+from chessdsl.gui import Gui
+from chessdsl.json_data import JsonData
+from chessdsl.json_parser import JsonParser
 
 
 def init():
@@ -24,7 +24,7 @@ def init():
     json_parser = JsonParser(file)
     json_parser.read_json()
 
-    json_data = Json.read_from_json()
+    json_data = JsonData.read_from_json()
     p.init()  # initializing the constructor
     p.display.set_caption(json_data['NAME'])
     icon = p.image.load(json_data['IMAGE'])
@@ -33,7 +33,7 @@ def init():
     screen.fill((json_data['BACKGROUND_COLOR']['RED'], json_data['BACKGROUND_COLOR']['GREEN'], json_data['BACKGROUND_COLOR']['BLUE']))
     p.display.flip()
 
-    gui = GUI()
+    gui = Gui()
     gui.main_menu(screen)
 
 
