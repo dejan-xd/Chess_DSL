@@ -1,5 +1,6 @@
 # Chess_DSL
 DSL jezik za predmet Jezici specifični za domen koji služi za igranje šaha.
+https://test.pypi.org/project/ChessDSL/
 
 ## Ideja
 Ideja je napraviti DSL sa pravilima za internacionalizaciju/lokalizaciju tako da se mogu komande igre prilagođavati prirodnom jeziku. <br>
