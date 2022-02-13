@@ -1,3 +1,4 @@
+import os
 import threading
 from textx import metamodel_from_file, TextXError
 from termcolor import colored
@@ -19,8 +20,7 @@ class InputThread(threading.Thread):
         self.enter = False
         self.disambiguating_moves = False
         self.disambiguating_moves_list = []
-        self.file = "settings.json"
-        self.json_parser = JsonParser(self.file)
+        self.json_parser = JsonParser()
         self.information = {}
         self.select_square = False
 
@@ -190,7 +190,8 @@ class InputThread(threading.Thread):
         Second part handles piece movement.
         :return: True or False depending if the thread is alive or not
         """
-        chess_mm = metamodel_from_file('textX/chess_rules.tx', ignore_case=True)
+        textx_path = os.path.join(os.path.dirname(__file__), 'textX', 'chess_rules.tx')
+        chess_mm = metamodel_from_file(textx_path, ignore_case=True)
         while True:
             try:
                 if self.enter and self.input_command is not None:

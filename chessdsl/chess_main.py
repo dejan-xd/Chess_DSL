@@ -8,14 +8,14 @@ from chessdsl.input_thread import InputThread
 from chessdsl.game_state import GameState
 from chessdsl.move import Move
 from chessdsl.chess_ai import ChessAI
+import os
 
 game_state = GameState()
 
 
 class ChessMain:
     def __init__(self):
-        self.file = "settings.json"
-        self.json_parser = JsonParser(self.file)
+        self.json_parser = JsonParser()
         # Izbaciti kad vise se ne bude koristilo
         self.json_data = JsonData.read_from_json()
         self.user_text = ""
@@ -40,7 +40,8 @@ class ChessMain:
         """
         pieces = self.json_data['PIECES']
         for key, value in pieces.items():
-            self.IMAGES[value] = p.transform.scale(p.image.load("images/" + value + ".png"), (self.SQ_SIZE, self.SQ_SIZE))
+            piece_image_path = os.path.join(os.path.dirname(__file__), 'images', value + '.png')
+            self.IMAGES[value] = p.transform.scale(p.image.load(piece_image_path), (self.SQ_SIZE, self.SQ_SIZE))
 
     def create_move_log_rectangle(self):
         """
@@ -635,7 +636,6 @@ class ChessMain:
 
         if text is not None:
             self.game_state.game_over = True
-            print("usao sam ovde")
             self.draw_text(screen, text)
 
     def draw_text(self, screen, text):
@@ -833,13 +833,17 @@ class ChessMain:
         :return:
         """
         if self.game_state.in_check():
-            sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CHECK'))  # check
+            check_path = os.path.join(os.path.dirname(__file__), 'audio', self.json_parser.get_by_key('AUDIO', 'CHECK'))
+            sound = p.mixer.Sound(check_path)  # check
         elif move.isCastleMove:
-            sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CASTLE'))  # castle
+            check_path = os.path.join(os.path.dirname(__file__), 'audio', self.json_parser.get_by_key('AUDIO', 'CASTLE'))
+            sound = p.mixer.Sound(check_path)  # castle
         elif move.pieceCaptured != "--":
-            sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'CAPTURE'))  # capture
+            check_path = os.path.join(os.path.dirname(__file__), 'audio', self.json_parser.get_by_key('AUDIO', 'CAPTURE'))
+            sound = p.mixer.Sound(check_path)  # capture
         else:
-            sound = p.mixer.Sound(self.json_parser.get_by_key('AUDIO', 'MOVE'))  # move
+            check_path = os.path.join(os.path.dirname(__file__), 'audio', self.json_parser.get_by_key('AUDIO', 'MOVE'))
+            sound = p.mixer.Sound(check_path)  # move
 
         sound.set_volume(self.set_volume(settings['SOUND'], self.json_parser.get_by_key('AUDIO')))  # read default settings from list
         sound.play()

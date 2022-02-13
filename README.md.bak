@@ -34,7 +34,7 @@ Za ostale potrebe Google prevodilac je odradio svoj deo posla. Bar se nadamo �
 ## Pokretanje Chess_DSL
 1. otvoriti cmd i otkucati komandu: pip install -i https://pypi.org/simple/ --extra-index-url https://test.pypi.org/simple/ ChessDSL
 2. kada se paket instalira, pokrenuti Python
-3. importovati ChessDSL paket preko komande: from chessdsl import launch
-4. pokrenuti igru komandom: launch.init()
+3. importovati ChessDSL paket preko komande: from chessdsl import chess
+4. pokrenuti igru komandom: chess.start()
 
 *instalacija ovog paketa je moguća na računaru ili u virtuelnoj mašini

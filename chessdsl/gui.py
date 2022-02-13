@@ -14,8 +14,7 @@ json_data = JsonData.read_from_json()
 
 class Gui:
     def __init__(self):
-        self.file_settings = "settings.json"
-        self.json_parser = JsonParser(self.file_settings)
+        self.json_parser = JsonParser()
         self.color = p.Color(self.json_parser.get_by_key('COLORS', 'INITIAL'))
         self.white = "w"
         self.black = "b"
