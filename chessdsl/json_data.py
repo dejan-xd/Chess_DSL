@@ -1,4 +1,5 @@
 import json
+import os
 
 
 class JsonData:
@@ -8,7 +9,8 @@ class JsonData:
         Method for reading from settings.json JSON file.
         :return:
         """
-        json_file = open('settings.json', "r", encoding="utf8")
+        settings_path = os.path.join(os.path.dirname(__file__), '..', 'chessdsl', 'settings.json')
+        json_file = open(settings_path, "r", encoding="utf8")
         data = json.loads(json_file.read())
         json_file.close()
 
@@ -34,6 +36,7 @@ class JsonData:
         :param json_data:
         :return:
         """
-        json_file = open("settings.json", "w", encoding="utf8")
+        settings_path = os.path.join(os.path.dirname(__file__), '..', 'chessdsl', 'settings.json')
+        json_file = open(settings_path, "w", encoding="utf8")
         json.dump(json_data, json_file, indent=2, ensure_ascii=False)
         json_file.close()

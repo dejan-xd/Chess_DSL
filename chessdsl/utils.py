@@ -3,8 +3,7 @@ from chessdsl.json_parser import JsonParser
 
 class Utils:
     def __init__(self):
-        self.file = "settings.json"
-        self.json_parser = JsonParser(self.file)
+        self.json_parser = JsonParser()
 
     def piece_name(self, game_state, piece):
         """

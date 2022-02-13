@@ -2,10 +2,13 @@
     Create Library for JSON parser.
 """
 import json
+import os
+
+SETTINGS_PATH = os.path.join(os.path.dirname(__file__), '..', 'chessdsl', 'settings.json')
 
 
 class JsonParser:
-    def __init__(self, file):
+    def __init__(self, file=SETTINGS_PATH):
         self.file = file
         self.read = "r"
         self.write = "w"

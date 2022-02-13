@@ -220,14 +220,12 @@ class GameState:
             # 4. for each of your opponent's moves, see if they attack your king
             self.whiteToMove = not self.whiteToMove  # switch back the turn so in_check() doesn't look the wrong color
             if self.in_check():
-                a = self.board
                 moves.remove(moves[i])  # 5. if they do attack your king, not a valid move
             self.whiteToMove = not self.whiteToMove
             self.undo_move()
         if len(moves) == 0:  # either checkmate or stalemate
             if self.in_check():
                 self.checkMate = True
-                print("evo me i ovde")
                 # self.game_over = True
             else:
                 self.staleMate = True
