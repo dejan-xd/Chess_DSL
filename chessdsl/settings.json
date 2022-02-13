@@ -1,6 +1,6 @@
 {
   "NAME": "Chess Game",
-  "IMAGE": "images/Icon.png",
+  "IMAGE": "Icon.png",
   "BOARD_WIDTH": 512,
   "BOARD_HEIGHT": 512,
   "MOVE_LOG_PANEL_WIDTH": 300,
@@ -123,15 +123,15 @@
   "SETTINGS": {
     "PIECE_COLOR": "w",
     "DIFFICULTY": 0,
-    "SOUND": "Loud",
+    "SOUND": "Low",
     "WHITE_WINS": 0.0,
-    "BLACK_WINS": 0.0
+    "BLACK_WINS": 1.0
   },
   "AUDIO": {
-    "CHECK": "audio/check.wav",
-    "CASTLE": "audio/castle.wav",
-    "CAPTURE": "audio/capture.wav",
-    "MOVE": "audio/move.wav",
+    "CHECK": "check.wav",
+    "CASTLE": "castle.wav",
+    "CAPTURE": "capture.wav",
+    "MOVE": "move.wav",
     "SOUND": {
       "OFF": {
         "NAME": "Off",

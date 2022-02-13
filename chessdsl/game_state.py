@@ -2,8 +2,8 @@
 This class is responsible for storing all the information about the current state of a chess game. It will also be responsible
 for determining the valid moves at the current state. It will also keep a move log.
 """
-import Move
-import CastleRights
+from chessdsl.move import Move
+from chessdsl.castle_rights import CastleRights
 
 
 class GameState:
@@ -57,10 +57,10 @@ class GameState:
         self.blackKingCastleLocationKingSide = (0, 6)
         self.blackKingCastleLocationQueenSide = (0, 2)
         self.castleUsed = False
-        self.currentCastlingRights = CastleRights.CastleRights(True, True, True, True)
+        self.currentCastlingRights = CastleRights(True, True, True, True)
         # store castle rights in the log and keep track of changes and update the log if needed
-        self.castleRightsLog = [CastleRights.CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,
-                                                          self.currentCastlingRights.wqs, self.currentCastlingRights.bqs)]
+        self.castleRightsLog = [CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,
+                                             self.currentCastlingRights.wqs, self.currentCastlingRights.bqs)]
 
     def is_human_turn(self):
         """
@@ -107,7 +107,7 @@ class GameState:
             else:  # queen side castle move
                 self.board[move.endRow][move.endCol + 1] = self.board[move.endRow][move.endCol - 2]  # move the rock
                 self.board[move.endRow][move.endCol - 2] = '--'  # erase old rock
-            
+
             if self.player_turn:
                 self.castleUsed = True
 
@@ -116,9 +116,8 @@ class GameState:
 
         # update castling rights - whenever it is a rock or a king move
         self.update_castle_rights(move)
-        self.castleRightsLog.append(
-            CastleRights.CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,
-                                      self.currentCastlingRights.wqs, self.currentCastlingRights.bqs))
+        self.castleRightsLog.append(CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,
+                                                 self.currentCastlingRights.wqs, self.currentCastlingRights.bqs))
 
     def undo_move(self):
         """
@@ -150,7 +149,7 @@ class GameState:
             # undo castling rights
             self.castleRightsLog.pop()  # get rid of the new castle rights from the move we are undoing
             new_rights = self.castleRightsLog[-1]  # set the current castle rights to the last one
-            self.currentCastlingRights = CastleRights.CastleRights(new_rights.wks, new_rights.bks, new_rights.wqs, new_rights.bqs)
+            self.currentCastlingRights = CastleRights(new_rights.wks, new_rights.bks, new_rights.wqs, new_rights.bqs)
 
             # undo castle move
             if move.isCastleMove:
@@ -160,7 +159,7 @@ class GameState:
                 else:  # queen side
                     self.board[move.endRow][move.endCol - 2] = self.board[move.endRow][move.endCol + 1]
                     self.board[move.endRow][move.endCol + 1] = '--'
-                            
+
                 if self.player_turn:
                     self.castleUsed = False
 
@@ -210,8 +209,8 @@ class GameState:
         """
         temp_en_passant_possible = self.enpassantPossible  # temporary store the value of the en passant square
         # copy current castling rights
-        temp_castle_rights = CastleRights.CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,
-                                                       self.currentCastlingRights.wqs, self.currentCastlingRights.bqs)
+        temp_castle_rights = CastleRights(self.currentCastlingRights.wks, self.currentCastlingRights.bks,
+                                          self.currentCastlingRights.wqs, self.currentCastlingRights.bqs)
         # 1. generate all possible moves
         moves = self.get_all_possible_moves()
         # 2. for each move, make the move
@@ -227,7 +226,7 @@ class GameState:
         if len(moves) == 0:  # either checkmate or stalemate
             if self.in_check():
                 self.checkMate = True
-                self.game_over = True
+                # self.game_over = True
             else:
                 self.staleMate = True
         # castle moves
@@ -250,37 +249,37 @@ class GameState:
         """
         if self.whiteToMove:  # white pawn moves
             if self.board[row - 1][col] == "--":  # 1 square pawn advance
-                moves.append(Move.Move((row, col), (row - 1, col), self.board))
+                moves.append(Move((row, col), (row - 1, col), self.board))
                 if row == 6 and self.board[row - 2][col] == "--":  # 2 square pawn advance
-                    moves.append(Move.Move((row, col), (row - 2, col), self.board))
+                    moves.append(Move((row, col), (row - 2, col), self.board))
             # captures
             if col - 1 >= 0:  # captures to the left
                 if self.board[row - 1][col - 1][0] == 'b':  # there is an enemy piece to capture
-                    moves.append(Move.Move((row, col), (row - 1, col - 1), self.board))
+                    moves.append(Move((row, col), (row - 1, col - 1), self.board))
                 elif (row - 1, col - 1) == self.enpassantPossible:  # en passant move to the left
-                    moves.append(Move.Move((row, col), (row - 1, col - 1), self.board, is_en_passant_move=True))
+                    moves.append(Move((row, col), (row - 1, col - 1), self.board, is_en_passant_move=True))
             if col + 1 <= 7:  # captures to the right
                 if self.board[row - 1][col + 1][0] == 'b':  # there is an enemy piece to capture
-                    moves.append(Move.Move((row, col), (row - 1, col + 1), self.board))
+                    moves.append(Move((row, col), (row - 1, col + 1), self.board))
                 elif (row - 1, col + 1) == self.enpassantPossible:  # en passant move to the right
-                    moves.append(Move.Move((row, col), (row - 1, col + 1), self.board, is_en_passant_move=True))
+                    moves.append(Move((row, col), (row - 1, col + 1), self.board, is_en_passant_move=True))
 
         else:  # black pawn moves
             if self.board[row + 1][col] == '--':  # 1 square move
-                moves.append(Move.Move((row, col), (row + 1, col), self.board))
+                moves.append(Move((row, col), (row + 1, col), self.board))
                 if row == 1 and self.board[row + 2][col] == '--':  # 2 square moves
-                    moves.append(Move.Move((row, col), (row + 2, col), self.board))
+                    moves.append(Move((row, col), (row + 2, col), self.board))
             # captures
             if col - 1 >= 0:  # capture to the left
                 if self.board[row + 1][col - 1][0] == 'w':  # there is an enemy piece to capture
-                    moves.append(Move.Move((row, col), (row + 1, col - 1), self.board))
+                    moves.append(Move((row, col), (row + 1, col - 1), self.board))
                 elif (row + 1, col - 1) == self.enpassantPossible:  # en passant move to the left
-                    moves.append(Move.Move((row, col), (row + 1, col - 1), self.board, is_en_passant_move=True))
+                    moves.append(Move((row, col), (row + 1, col - 1), self.board, is_en_passant_move=True))
             if col + 1 <= 7:  # capture to the right
                 if self.board[row + 1][col + 1][0] == 'w':  # there is an enemy piece to capture
-                    moves.append(Move.Move((row, col), (row + 1, col + 1), self.board))
+                    moves.append(Move((row, col), (row + 1, col + 1), self.board))
                 elif (row + 1, col + 1) == self.enpassantPossible:  # en passant move to the right
-                    moves.append(Move.Move((row, col), (row + 1, col + 1), self.board, is_en_passant_move=True))
+                    moves.append(Move((row, col), (row + 1, col + 1), self.board, is_en_passant_move=True))
 
     def get_rock_moves(self, row, col, moves):
         """
@@ -300,9 +299,9 @@ class GameState:
                 if 0 <= end_row < 8 and 0 <= end_col < 8:  # is it on board
                     end_piece = self.board[end_row][end_col]
                     if end_piece == "--":  # empty space valid
-                        moves.append(Move.Move((row, col), (end_row, end_col), self.board))
+                        moves.append(Move((row, col), (end_row, end_col), self.board))
                     elif end_piece[0] == enemy_color:  # enemy piece valid
-                        moves.append(Move.Move((row, col), (end_row, end_col), self.board))
+                        moves.append(Move((row, col), (end_row, end_col), self.board))
                         break
                     else:  # friendly piece invalid
                         break
@@ -325,7 +324,7 @@ class GameState:
             if 0 <= end_row < 8 and 0 <= end_col < 8:  # is it on board
                 end_piece = self.board[end_row][end_col]
                 if end_piece[0] != ally_color:  # not an ally piece (empty square or enemy piece)
-                    moves.append(Move.Move((row, col), (end_row, end_col), self.board))
+                    moves.append(Move((row, col), (end_row, end_col), self.board))
 
     def get_bishop_moves(self, row, col, moves):
         """
@@ -344,9 +343,9 @@ class GameState:
                 if 0 <= end_row < 8 and 0 <= end_col < 8:  # is it on board
                     end_piece = self.board[end_row][end_col]
                     if end_piece == "--":  # empty space valid
-                        moves.append(Move.Move((row, col), (end_row, end_col), self.board))
+                        moves.append(Move((row, col), (end_row, end_col), self.board))
                     elif end_piece[0] == enemy_color:  # enemy piece valid
-                        moves.append(Move.Move((row, col), (end_row, end_col), self.board))
+                        moves.append(Move((row, col), (end_row, end_col), self.board))
                         break
                     else:  # friendly piece invalid
                         break
@@ -382,7 +381,7 @@ class GameState:
             if 0 <= end_row < 8 and 0 <= end_col < 8:  # is it on board
                 end_piece = self.board[end_row][end_col]
                 if end_piece[0] != ally_color:  # not an ally piece (empty square or enemy piece)
-                    moves.append(Move.Move((row, col), (end_row, end_col), self.board))
+                    moves.append(Move((row, col), (end_row, end_col), self.board))
 
     def get_castle_moves(self, row, col, moves):
         """
@@ -414,7 +413,7 @@ class GameState:
             if self.board[row][col + 1] == '--' and self.board[row][col + 2] == '--':
                 if self.board[row][col + 3] == 'wR' or self.board[row][col + 3] == 'bR':
                     if not self.square_under_attack(row, col + 1) and not self.square_under_attack(row, col + 2):
-                        moves.append(Move.Move((row, col), (row, col + 2), self.board, is_castle_move=True))
+                        moves.append(Move((row, col), (row, col + 2), self.board, is_castle_move=True))
         except IndexError:
             pass
 
@@ -434,7 +433,7 @@ class GameState:
             if self.board[row][col - 1] == '--' and self.board[row][col - 2] == '--' and self.board[row][col - 3] == '--':
                 if self.board[row][col - 4] == 'wR' or self.board[row][col - 4] == 'bR':
                     if not self.square_under_attack(row, col - 1) and not self.square_under_attack(row, col - 2):
-                        moves.append(Move.Move((row, col), (row, col - 2), self.board, is_castle_move=True))
+                        moves.append(Move((row, col), (row, col - 2), self.board, is_castle_move=True))
         except IndexError:
             pass
 

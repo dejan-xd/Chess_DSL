@@ -1,13 +1,13 @@
-from JsonParser import JsonParser
 import random
+from chessdsl.json_parser import JsonParser
+import os
 
 
 class ChessAI:
     def __init__(self):
-        self.file_score = "score_material.json"
-        self.json_parser_score = JsonParser(self.file_score)
-        self.file_settings = "settings.json"
-        self.json_parser_settings = JsonParser(self.file_settings)
+        self.file_score_path = os.path.join(os.path.dirname(__file__), '..', 'chessdsl', 'score_material.json')
+        self.json_parser_score = JsonParser(self.file_score_path)
+        self.json_parser_settings = JsonParser()
         self.next_move = None
         self.depth = self.json_parser_settings.get_by_key('SETTINGS', 'DIFFICULTY')
         self.piece_scores = self.json_parser_score.get_by_key('PIECE_SCORES')

@@ -1,10 +1,11 @@
+import os
 import threading
-import Move
-import ChessMain
-from JsonParser import JsonParser
 from textx import metamodel_from_file, TextXError
 from termcolor import colored
-from Utils import Utils
+from chessdsl import chess_main
+from chessdsl.move import Move
+from chessdsl.json_parser import JsonParser
+from chessdsl.utils import Utils
 
 
 class InputThread(threading.Thread):
@@ -14,22 +15,14 @@ class InputThread(threading.Thread):
         self.input_command = None
         self.move_from = None
         self.move_to = None
-        self.rowsToRanks = {v: k for v, k in Move.Move.ranksToRows.items()}
-        self.colsToFiles = {v: k for v, k in Move.Move.filesToCols.items()}
+        self.rowsToRanks = {v: k for v, k in Move.ranksToRows.items()}
+        self.colsToFiles = {v: k for v, k in Move.filesToCols.items()}
         self.enter = False
         self.disambiguating_moves = False
         self.disambiguating_moves_list = []
-        self.file = "settings.json"
-        self.json_parser = JsonParser(self.file)
+        self.json_parser = JsonParser()
         self.information = {}
         self.select_square = False
-        self.stop_event = threading.Event()
-
-    def stop(self):
-        self.stop_event.set()
-
-    def stopped(self):
-        return self.stop_event.is_set()
 
     def input_notation(self, coordination):
         """
@@ -131,9 +124,9 @@ class InputThread(threading.Thread):
             for row in range(8):
                 for col in range(8):
                     if game_state.board[row][col] == piece:
-                        move = Move.Move((row, col), self.move_to, game_state.board)
+                        move_played = Move((row, col), self.move_to, game_state.board)
                         for i in range(len(valid_moves)):
-                            if move == valid_moves[i]:
+                            if move_played == valid_moves[i]:
                                 self.move_from = (row, col)
                                 nbr_of_multi_moves += 1
                                 break
@@ -159,9 +152,9 @@ class InputThread(threading.Thread):
             for row in range(8):
                 for col in range(8):
                     if game_state.board[row][col] == piece:
-                        move = Move.Move((row, col), self.move_to, game_state.board)
+                        move_played = Move((row, col), self.move_to, game_state.board)
                         for i in range(len(valid_moves)):
-                            if move == valid_moves[i]:
+                            if move_played == valid_moves[i]:
                                 nbr_of_multi_moves += 1
                                 self.disambiguating_moves_list.append((row, col))
                                 break
@@ -175,14 +168,14 @@ class InputThread(threading.Thread):
 
         if not self.disambiguating_moves:
             if self.move_from != self.move_to:
-                move = Move.Move(self.move_from, self.move_to, game_state.board)
+                move_played = Move(self.move_from, self.move_to, game_state.board)
                 for i in range(len(valid_moves)):
-                    if move == valid_moves[i]:
+                    if move_played == valid_moves[i]:
                         print(colored(">>> OK", "green"))
                         self.add_to_information_dict("MOVE: " + self.input_command.lower() + " >>> OK", "olivedrab3")
                         break
 
-                if move not in valid_moves:
+                if move_played not in valid_moves:
                     print(colored(">>> Info: That move is not in the list of valid moves.", "yellow"))
                     self.add_to_information_dict(">>> Info: That move is not in the list of valid moves.", "gold")
 
@@ -197,12 +190,13 @@ class InputThread(threading.Thread):
         Second part handles piece movement.
         :return: True or False depending if the thread is alive or not
         """
-        chess_mm = metamodel_from_file('textX/chess_rules.tx', ignore_case=True)
+        textx_path = os.path.join(os.path.dirname(__file__), 'textX', 'chess_rules.tx')
+        chess_mm = metamodel_from_file(textx_path, ignore_case=True)
         while True:
             try:
-                if self.enter:
-                    game_state = ChessMain.ChessMain().game_state
-                    self.move_from = self.move_to = None
+                if self.enter and self.input_command is not None:
+                    game_state = chess_main.ChessMain().game_state
+                    # self.move_from = self.move_to = None
                     self.enter = False
 
                     exec(self.input_command, globals())
@@ -211,13 +205,13 @@ class InputThread(threading.Thread):
                     self.input_command = input_command_split[1]
 
                     chess_model = chess_mm.model_from_str(self.input_command)
-                    valid_moves = ChessMain.ChessMain().valid_moves
+                    valid_moves = chess_main.ChessMain().valid_moves
 
                     if hasattr(chess_model.commands[0], "handler"):
                         self.handler_commands(chess_model, game_state)
                     else:
                         self.move_command(chess_model, game_state, valid_moves)
-                        print(self.move_from)
+
             except TypeError:
                 if self.move_to is None:
                     print(colored(">>> TypeError: an invalid reference was made!", "red"))

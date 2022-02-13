@@ -1,0 +1,3 @@
+recursive-include chessdsl/audio *
+recursive-include chessdsl/images *
+recursive-include chessdsl/textX *
