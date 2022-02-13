@@ -1,5 +1,5 @@
 # Chess_DSL
-DSL jezik za predmet Jezici specifični za domen koji služi za igranje šaha.
+DSL jezik za predmet Jezici specifični za domen koji služi za igranje šaha. <br>
 https://test.pypi.org/project/ChessDSL/
 
 ## Ideja
