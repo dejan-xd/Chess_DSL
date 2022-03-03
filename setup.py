@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 PACKAGE_NAME = "ChessDSL"
-VERSION = "2.0"
+VERSION = "2.0.2"
 AUTHOR = "Novica Nikolic, Jovan Popovic, Dejan Jovanovic"
 AUTHOR_EMAIL = "nole0223@gmail.com, jovanpop92@gmail.com, dejan.jovanovic94@gmail.com"
 DESCRIPTION = "DSL for playing chess game"
@@ -36,7 +36,7 @@ setup(
         "textx-ls-core==0.1.1",
         "termcolor==1.1.0"
     ],
-    entry_points={"textx_languages": ["chess = textX:chess"]},
+    entry_points={"console_scripts": ["chess-dsl-cli = chessdsl.launch:init"]},
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: End Users/Desktop",
