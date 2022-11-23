@@ -1,41 +1,41 @@
 # Chess_DSL
-DSL jezik za predmet Jezici specifični za domen koji služi za igranje šaha. <br>
+Domain Specific Language (DSL) used for playing chess. <br>
 https://test.pypi.org/project/ChessDSL/
 
-## Ideja
-Ideja je napraviti DSL sa pravilima za internacionalizaciju/lokalizaciju tako da se mogu komande igre prilagođavati prirodnom jeziku. <br>
-Pravila za internacionalizaciju/lokalizaciju se u toku igre tumače i omogućava se parsiranje komandi.
+## Idea
+The idea is to create a DSL with rules for internationalization/localization so that game commands can be adapted to natural language. <br>
+Rules for internationalization/localization are interpreted during the game and command parsing is enabled.
 
-Sama pravila lokalizacije se konfigurišu tokom igranja partije šaha gde korisnik unosi komande na željenom jeziku. <br>
-Ovakav DSL je u mogućnosti da na osnovu konfiguracije tumači poteze koji su uneti preko konzole i da prepozna specifične simbole datog jezika. (npr. č, š , ü, é itd.).
+The localization rules themselves are configured while playing a game of chess where the user enters commands in the desired language. <br>
+This kind of DSL is able to interpret the moves entered through the console based on the configuration and to recognize the specific symbols of the given language. (eg ч, ш, ü, é, etc.).
 
-### Komande
-Komande pomeranja idu po formuli: <b>'ime figure' 'na polje'</b>. Ukoliko dve ili više istih figura mogu da se pomere na isto polje potrebno je dodati i <b>'sa polja'</b> parametar između. 
-Izuzetak su handler komande koje se sastoje samo od naziva komande.
+### Commands
+Move commands follow the formula: <b>'figure name' 'to field'</b>. If two or more of the same figures can be moved to the same field, it is necessary to add the <b>'from the field'</b> parameter in between.
+Exceptions are handler commands that consist only of the command name.
 
-Primeri komandi:
-- pešak e4,
-- konj f3,
-- top h1 d1 (primera radi i top a1 može da se pomeri na polje d1),
-- poništi,
-- nova igra,
-- annuler itd.
+Example commands:
+- pawn e4,
+- horse f3,
+- rook h1 d1 (for example rook a1 can be moved to field d1),
+- cancel,
+- new game,
+- undo etc.
 
-### Jezici koji su implementirani u projekat su:
-- srpski,
-- engleski,
-- španski,
-- nemački, i
-- francuski
+### The languages implemented in the project are:
+- Serbian,
+- English,
+- Spanish,
+- German, and
+- French
 
-Što se tiče prevoda komandi i figura na druge jezike koristi se Chess Vikipedija kako bi bilo što više tačnih naziva figura. <br>
-Za ostale potrebe Google prevodilac je odradio svoj deo posla. Bar se nadamo 🙂.
+Regarding the translation of commands and pieces into other languages, Chess Wikipedia is used so that there are as many correct names of pieces as possible. <br>
+For other needs, Google Translate has done its part. At least we hope so 🙂.
 
 
-## Pokretanje Chess_DSL
-* otvoriti cmd i otkucati komandu:
+## Starting Chess_DSL
+* open cmd and type the command:
   - pip install -i https://pypi.org/simple/ --extra-index-url https://test.pypi.org/simple/ ChessDSL
-* kada se paket instalira, pokrenuti igru komandom:
+* once the package is installed, launch the game with the command:
   - chess-dsl-cli
 
-*instalacija ovog paketa je moguća na računaru ili u virtuelnoj mašini
+*installation of this package is possible on a computer or in a virtual machine
